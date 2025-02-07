@@ -1,74 +1,38 @@
 #!/bin/bash
 
+# Load configuration file
+source config.sh
+
+# Load OS release information
 . /etc/os-release
 MAIN_VERSION_ID="$(echo ${VERSION_ID} |cut -f1 -d'.')"
 
-
-FSTAB='/etc/fstab'
-YUM_CONF='/etc/yum.conf'
-GRUB_CFG='/boot/grub2/grub.cfg'
-GRUB_DIR='/etc/grub.d'
-SELINUX_CFG='/etc/selinux/config'
-JOURNALD_CFG='/etc/systemd/journald.conf'
-CHRONY_CONF='/etc/chrony.conf'
-SECURETTY_CFG='/etc/securetty'
-LIMITS_CNF='/etc/security/limits.conf'
-SYSCTL_CNF='/etc/sysctl.d/50-.conf'
-HOSTS_ALLOW='/etc/hosts.allow'
-HOSTS_DENY='/etc/hosts.deny'
-_CNF='/etc/modprobe.d/.conf'
-RSYSLOG_CNF='/etc/rsyslog.conf'
-AUDITD_CNF='/etc/audit/auditd.conf'
-AUDIT_RULES='/etc/audit/audit.rules'
-LOGR_SYSLOG='/etc/logrotate.d/syslog'
-ANACRONTAB='/etc/anacrontab'
-CRONTAB='/etc/crontab'
-CRON_HOURLY='/etc/cron.hourly'
-CRON_DAILY='/etc/cron.daily'
-CRON_WEEKLY='/etc/cron.weekly'
-CRON_MONTHLY='/etc/cron.monthly'
-CRON_DIR='/etc/cron.d'
-AT_ALLOW='/etc/at.allow'
-AT_DENY='/etc/at.deny'
-CRON_ALLOW='/etc/cron.allow'
-CRON_DENY='/etc/cron.deny'
-SSHD_CFG='/etc/ssh/sshd_config'
-SYSTEM_AUTH='/etc/pam.d/system-auth'
-PWQUAL_CNF='/etc/security/pwquality.conf'
-PASS_AUTH='/etc/pam.d/password-auth'
-PAM_SU='/etc/pam.d/su'
-GROUP='/etc/group'
-LOGIN_DEFS='/etc/login.defs'
-PASSWD='/etc/passwd'
-SHADOW='/etc/shadow'
-GSHADOW='/etc/gshadow'
-BASHRC='/etc/bashrc'
-PROF_D='/etc/profile.d'
-PROFILE='/etc/profile'
-MOTD='/etc/motd'
-ISSUE='/etc/issue'
-ISSUE_NET='/etc/issue.net'
-BANNER_MSG='/etc/dconf/db/gdm.d/01-banner-message'
+# Initialize counters
 TOTAL=0; PASS=0; FAILED=0
 
+# Function to print bold text
 function echo_bold {
   echo -e "\e[1m${@} \e[0m"
 }
 
+# Function to print red text
 function echo_red {
   echo -e "\e[91m${@} \e[0m"
 }
 
+# Function to print green text
 function echo_green {
   echo -e "\e[92m${@} \e[0m"
 }
 
-function chk_owner_group02 {
+# Function to check file owner and group
+function check_owner_group {
   local file=$1
   local owner_group="root:root"
   stat -c '%U:%G' $1 | grep -q ${owner_group} || return
 }
 
+# Function to check if a kernel module is loaded
 function check_kernel_module {
   local module=$1
   if lsmod | grep -q "^${module}"; then
@@ -78,6 +42,7 @@ function check_kernel_module {
   fi
 }
 
+# Function to check partition options
 function check_partition_option {
   local partition=$1
   local option=$2
@@ -88,6 +53,7 @@ function check_partition_option {
   fi
 }
 
+# Function to check if GPG keys are configured
 function check_gpg_keys_configured {
   if rpm -q gpg-pubkey; then
     return 0
@@ -96,14 +62,16 @@ function check_gpg_keys_configured {
   fi
 }
 
+# Function to check if gpgcheck is globally activated
 function check_gpgcheck_globally_activated {
-  if grep -q "^gpgcheck=1" /etc/yum.conf; then
+  if grep -q "^gpgcheck=1" $YUM_CONF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if package manager repositories are configured
 function check_package_manager_repositories_configured {
   if ls /etc/yum.repos.d/*.repo; then
     return 0
@@ -112,6 +80,7 @@ function check_package_manager_repositories_configured {
   fi
 }
 
+# Function to check if updates are installed
 function check_updates_installed {
   if yum check-update; then
     return 0
@@ -120,22 +89,25 @@ function check_updates_installed {
   fi
 }
 
+# Function to check if bootloader password is set
 function check_bootloader_password_set {
-  if grep -q "^GRUB2_PASSWORD" /boot/grub2/grub.cfg; then
+  if grep -q "^GRUB2_PASSWORD" $GRUB_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check bootloader permissions
 function check_bootloader_permissions_configured {
-  if [ $(stat -c "%a" /boot/grub2/grub.cfg) -eq 600 ]; then
+  if [ $(stat -c "%a" $GRUB_CFG) -eq 600 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if ASLR is enabled
 function check_aslr_enabled {
   if [ $(sysctl kernel.randomize_va_space | awk '{print $3}') -eq 2 ]; then
     return 0
@@ -144,6 +116,7 @@ function check_aslr_enabled {
   fi
 }
 
+# Function to check if ptrace_scope is restricted
 function check_ptrace_scope_restricted {
   if [ $(sysctl kernel.yama.ptrace_scope | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -152,6 +125,7 @@ function check_ptrace_scope_restricted {
   fi
 }
 
+# Function to check if core dump backtraces are disabled
 function check_core_dump_backtraces_disabled {
   if [ $(sysctl fs.suid_dumpable | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -160,6 +134,7 @@ function check_core_dump_backtraces_disabled {
   fi
 }
 
+# Function to check if core dump storage is disabled
 function check_core_dump_storage_disabled {
   if [ $(sysctl fs.suid_dumpable | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -168,6 +143,7 @@ function check_core_dump_storage_disabled {
   fi
 }
 
+# Function to check if SELinux is installed
 function check_selinux_installed {
   if rpm -q libselinux; then
     return 0
@@ -176,14 +152,16 @@ function check_selinux_installed {
   fi
 }
 
+# Function to check if SELinux is not disabled in bootloader
 function check_selinux_not_disabled_in_bootloader {
-  if ! grep -q "selinux=0" /boot/grub2/grub.cfg; then
+  if ! grep -q "selinux=0" $GRUB_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if SELinux policy is configured
 function check_selinux_policy_configured {
   if sestatus | grep -q "Loaded policy name"; then
     return 0
@@ -192,6 +170,7 @@ function check_selinux_policy_configured {
   fi
 }
 
+# Function to check if SELinux mode is not disabled
 function check_selinux_mode_not_disabled {
   if [ $(getenforce) != "Disabled" ]; then
     return 0
@@ -200,6 +179,7 @@ function check_selinux_mode_not_disabled {
   fi
 }
 
+# Function to check if no unconfined services exist
 function check_no_unconfined_services_exist {
   if ! ps -eZ | grep unconfined_service_t; then
     return 0
@@ -208,6 +188,7 @@ function check_no_unconfined_services_exist {
   fi
 }
 
+# Function to check if mcstrans is not installed
 function check_mcstrans_not_installed {
   if ! rpm -q mcstrans; then
     return 0
@@ -216,6 +197,7 @@ function check_mcstrans_not_installed {
   fi
 }
 
+# Function to check if crypto policy is not legacy
 function check_crypto_policy_not_legacy {
   if ! update-crypto-policies --show | grep -q "LEGACY"; then
     return 0
@@ -224,6 +206,7 @@ function check_crypto_policy_not_legacy {
   fi
 }
 
+# Function to check if crypto policy disables SHA1
 function check_crypto_policy_disables_sha1 {
   if ! update-crypto-policies --show | grep -q "SHA1"; then
     return 0
@@ -232,6 +215,7 @@ function check_crypto_policy_disables_sha1 {
   fi
 }
 
+# Function to check if crypto policy disables CBC
 function check_crypto_policy_disables_cbc {
   if ! update-crypto-policies --show | grep -q "CBC"; then
     return 0
@@ -240,6 +224,7 @@ function check_crypto_policy_disables_cbc {
   fi
 }
 
+# Function to check if crypto policy disables weak MACs
 function check_crypto_policy_disables_weak_macs {
   if ! update-crypto-policies --show | grep -q "MACS"; then
     return 0
@@ -248,54 +233,61 @@ function check_crypto_policy_disables_weak_macs {
   fi
 }
 
+# Function to check if MOTD is configured properly
 function check_motd_configured_properly {
-  if [ -f /etc/motd ]; then
+  if [ -f $MOTD ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if local login warning banner is configured
 function check_local_login_warning_banner_configured {
-  if [ -f /etc/issue ]; then
+  if [ -f $ISSUE ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if remote login warning banner is configured
 function check_remote_login_warning_banner_configured {
-  if [ -f /etc/issue.net ]; then
+  if [ -f $ISSUE_NET ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check access to MOTD
 function check_access_motd {
-  if [ -f /etc/motd ] && [ $(stat -c "%a" /etc/motd) -eq 644 ]; then
+  if [ -f $MOTD ] && [ $(stat -c "%a" $MOTD) -eq 644 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check access to ISSUE
 function check_access_issue {
-  if [ -f /etc/issue ] && [ $(stat -c "%a" /etc/issue) -eq 644 ]; then
+  if [ -f $ISSUE ] && [ $(stat -c "%a" $ISSUE) -eq 644 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check access to ISSUE_NET
 function check_access_issue_net {
-  if [ -f /etc/issue.net ] && [ $(stat -c "%a" /etc/issue.net) -eq 644 ]; then
+  if [ -f $ISSUE_NET ] && [ $(stat -c "%a" $ISSUE_NET) -eq 644 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if GDM login banner is configured
 function check_gdm_login_banner {
   if grep -q "banner-message-enable=true" /etc/gdm/custom.conf; then
     return 0
@@ -304,6 +296,7 @@ function check_gdm_login_banner {
   fi
 }
 
+# Function to check if GDM disable-user-list is enabled
 function check_gdm_disable_user_list {
   if grep -q "disable-user-list=true" /etc/gdm/custom.conf; then
     return 0
@@ -312,6 +305,7 @@ function check_gdm_disable_user_list {
   fi
 }
 
+# Function to check if GDM screen locks when the user is idle
 function check_gdm_screen_lock_idle {
   if grep -q "idle-delay" /etc/gdm/custom.conf; then
     return 0
@@ -320,6 +314,7 @@ function check_gdm_screen_lock_idle {
   fi
 }
 
+# Function to check if GDM screen locks cannot be overridden
 function check_gdm_screen_lock_override {
   if grep -q "lock-delay" /etc/gdm/custom.conf; then
     return 0
@@ -328,6 +323,7 @@ function check_gdm_screen_lock_override {
   fi
 }
 
+# Function to check if GDM autorun-never is enabled
 function check_gdm_autorun_never {
   if grep -q "autorun-never=true" /etc/gdm/custom.conf; then
     return 0
@@ -336,6 +332,7 @@ function check_gdm_autorun_never {
   fi
 }
 
+# Function to check if GDM autorun-never is not overridden
 function check_gdm_autorun_never_override {
   if ! grep -q "autorun-never=false" /etc/gdm/custom.conf; then
     return 0
@@ -344,6 +341,7 @@ function check_gdm_autorun_never_override {
   fi
 }
 
+# Function to check if XDMCP is not enabled
 function check_xdmcp_not_enabled {
   if ! grep -q "Enable=true" /etc/gdm/custom.conf; then
     return 0
@@ -352,6 +350,7 @@ function check_xdmcp_not_enabled {
   fi
 }
 
+# Function to check if time synchronization is in use
 function check_time_sync_in_use {
   if systemctl is-active chronyd || systemctl is-active ntpd; then
     return 0
@@ -360,14 +359,16 @@ function check_time_sync_in_use {
   fi
 }
 
+# Function to check if chrony is configured
 function check_chrony_configured {
-  if [ -f /etc/chrony.conf ]; then
+  if [ -f $CHRONY_CONF ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if chrony is not run as the root user
 function check_chrony_not_root {
   if ! ps -u root | grep chronyd; then
     return 0
@@ -376,6 +377,7 @@ function check_chrony_not_root {
   fi
 }
 
+# Function to check if DHCP is not in use
 function check_dhcp_not_in_use {
   if ! systemctl is-active dhcpd; then
     return 0
@@ -384,6 +386,7 @@ function check_dhcp_not_in_use {
   fi
 }
 
+# Function to check if DNS is not in use
 function check_dns_not_in_use {
   if ! systemctl is-active named; then
     return 0
@@ -392,6 +395,7 @@ function check_dns_not_in_use {
   fi
 }
 
+# Function to check if dnsmasq is not in use
 function check_dnsmasq_not_in_use {
   if ! systemctl is-active dnsmasq; then
     return 0
@@ -400,6 +404,7 @@ function check_dnsmasq_not_in_use {
   fi
 }
 
+# Function to check if Samba is not in use
 function check_samba_not_in_use {
   if ! systemctl is-active smb; then
     return 0
@@ -408,6 +413,7 @@ function check_samba_not_in_use {
   fi
 }
 
+# Function to check if FTP is not in use
 function check_ftp_not_in_use {
   if ! systemctl is-active vsftpd; then
     return 0
@@ -416,6 +422,7 @@ function check_ftp_not_in_use {
   fi
 }
 
+# Function to check if message access server is not in use
 function check_message_access_not_in_use {
   if ! systemctl is-active dovecot; then
     return 0
@@ -424,6 +431,7 @@ function check_message_access_not_in_use {
   fi
 }
 
+# Function to check if NFS is not in use
 function check_nfs_not_in_use {
   if ! systemctl is-active nfs; then
     return 0
@@ -432,6 +440,7 @@ function check_nfs_not_in_use {
   fi
 }
 
+# Function to check if NIS is not in use
 function check_nis_not_in_use {
   if ! systemctl is-active ypserv; then
     return 0
@@ -440,6 +449,7 @@ function check_nis_not_in_use {
   fi
 }
 
+# Function to check if rpcbind is not in use
 function check_rpcbind_not_in_use {
   if ! systemctl is-active rpcbind; then
     return 0
@@ -448,6 +458,7 @@ function check_rpcbind_not_in_use {
   fi
 }
 
+# Function to check if rsync is not in use
 function check_rsync_not_in_use {
   if ! systemctl is-active rsync; then
     return 0
@@ -456,6 +467,7 @@ function check_rsync_not_in_use {
   fi
 }
 
+# Function to check if SNMP is not in use
 function check_snmp_not_in_use {
   if ! systemctl is-active snmpd; then
     return 0
@@ -464,6 +476,7 @@ function check_snmp_not_in_use {
   fi
 }
 
+# Function to check if telnet server is not in use
 function check_telnet_server_not_in_use {
   if ! systemctl is-active telnet.socket; then
     return 0
@@ -472,6 +485,7 @@ function check_telnet_server_not_in_use {
   fi
 }
 
+# Function to check if TFTP server is not in use
 function check_tftp_server_not_in_use {
   if ! systemctl is-active tftp.socket; then
     return 0
@@ -480,6 +494,7 @@ function check_tftp_server_not_in_use {
   fi
 }
 
+# Function to check if web proxy is not in use
 function check_web_proxy_not_in_use {
   if ! systemctl is-active squid; then
     return 0
@@ -488,6 +503,7 @@ function check_web_proxy_not_in_use {
   fi
 }
 
+# Function to check if web server is not in use
 function check_web_server_not_in_use {
   if ! systemctl is-active httpd; then
     return 0
@@ -496,6 +512,7 @@ function check_web_server_not_in_use {
   fi
 }
 
+# Function to check if xinetd is not in use
 function check_xinetd_not_in_use {
   if ! systemctl is-active xinetd; then
     return 0
@@ -504,6 +521,7 @@ function check_xinetd_not_in_use {
   fi
 }
 
+# Function to check if mail transfer agents are configured for local-only mode
 function check_mail_transfer_agents_local_only {
   if grep -q "^inet_interfaces = loopback-only" /etc/postfix/main.cf; then
     return 0
@@ -512,6 +530,7 @@ function check_mail_transfer_agents_local_only {
   fi
 }
 
+# Function to check if only approved services are listening on a network interface
 function check_approved_services_listening {
   if netstat -tuln | grep -q LISTEN; then
     return 0
@@ -520,6 +539,7 @@ function check_approved_services_listening {
   fi
 }
 
+# Function to check if FTP client is not installed
 function check_ftp_client_not_installed {
   if ! rpm -q ftp; then
     return 0
@@ -528,6 +548,7 @@ function check_ftp_client_not_installed {
   fi
 }
 
+# Function to check if NIS client is not installed
 function check_nis_client_not_installed {
   if ! rpm -q ypbind; then
     return 0
@@ -536,6 +557,7 @@ function check_nis_client_not_installed {
   fi
 }
 
+# Function to check if telnet client is not installed
 function check_telnet_client_not_installed {
   if ! rpm -q telnet; then
     return 0
@@ -544,6 +566,7 @@ function check_telnet_client_not_installed {
   fi
 }
 
+# Function to check if TFTP client is not installed
 function check_tftp_client_not_installed {
   if ! rpm -q tftp; then
     return 0
@@ -552,6 +575,7 @@ function check_tftp_client_not_installed {
   fi
 }
 
+# Function to check if IPv6 status is identified
 function check_ipv6_status_identified {
   if [ -f /proc/net/if_inet6 ]; then
     return 0
@@ -560,6 +584,7 @@ function check_ipv6_status_identified {
   fi
 }
 
+# Function to check if IP forwarding is disabled
 function check_ip_forwarding_disabled {
   if [ $(sysctl net.ipv4.ip_forward | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -568,6 +593,7 @@ function check_ip_forwarding_disabled {
   fi
 }
 
+# Function to check if packet redirect sending is disabled
 function check_packet_redirect_sending_disabled {
   if [ $(sysctl net.ipv4.conf.all.send_redirects | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -576,6 +602,7 @@ function check_packet_redirect_sending_disabled {
   fi
 }
 
+# Function to check if bogus ICMP responses are ignored
 function check_bogus_icmp_responses_ignored {
   if [ $(sysctl net.ipv4.icmp_ignore_bogus_error_responses | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -584,6 +611,7 @@ function check_bogus_icmp_responses_ignored {
   fi
 }
 
+# Function to check if broadcast ICMP requests are ignored
 function check_broadcast_icmp_requests_ignored {
   if [ $(sysctl net.ipv4.icmp_echo_ignore_broadcasts | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -592,6 +620,7 @@ function check_broadcast_icmp_requests_ignored {
   fi
 }
 
+# Function to check if ICMP redirects are not accepted
 function check_icmp_redirects_not_accepted {
   if [ $(sysctl net.ipv4.conf.all.accept_redirects | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -600,6 +629,7 @@ function check_icmp_redirects_not_accepted {
   fi
 }
 
+# Function to check if secure ICMP redirects are not accepted
 function check_secure_icmp_redirects_not_accepted {
   if [ $(sysctl net.ipv4.conf.all.secure_redirects | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -608,315 +638,7 @@ function check_secure_icmp_redirects_not_accepted {
   fi
 }
 
-function check_rpcbind_not_in_use {
-  if ! systemctl is-active rpcbind; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_rsync_not_in_use {
-  if ! systemctl is-active rsync; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_snmp_not_in_use {
-  if ! systemctl is-active snmpd; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_telnet_server_not_in_use {
-  if ! systemctl is-active telnet.socket; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_tftp_server_not_in_use {
-  if ! systemctl is-active tftp.socket; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_web_proxy_not_in_use {
-  if ! systemctl is-active squid; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_web_server_not_in_use {
-  if ! systemctl is-active httpd; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_xinetd_not_in_use {
-  if ! systemctl is-active xinetd; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_mail_transfer_agents_local_only {
-  if grep -q "^inet_interfaces = loopback-only" /etc/postfix/main.cf; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_approved_services_listening {
-  if netstat -tuln | grep -q LISTEN; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ftp_client_not_installed {
-  if ! rpm -q ftp; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_nis_client_not_installed {
-  if ! rpm -q ypbind; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_telnet_client_not_installed {
-  if ! rpm -q telnet; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_tftp_client_not_installed {
-  if ! rpm -q tftp; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ipv6_status_identified {
-  if [ -f /proc/net/if_inet6 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ip_forwarding_disabled {
-  if [ $(sysctl net.ipv4.ip_forward | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_packet_redirect_sending_disabled {
-  if [ $(sysctl net.ipv4.conf.all.send_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_bogus_icmp_responses_ignored {
-  if [ $(sysctl net.ipv4.icmp_ignore_bogus_error_responses | awk '{print $3}') -eq 1 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_broadcast_icmp_requests_ignored {
-  if [ $(sysctl net.ipv4.icmp_echo_ignore_broadcasts | awk '{print $3}') -eq 1 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_icmp_redirects_not_accepted {
-  if [ $(sysctl net.ipv4.conf.all.accept_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_secure_icmp_redirects_not_accepted {
-  if [ $(sysctl net.ipv4.conf.all.secure_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-
-echo "ID,Description,Parameters,$HOSTNAME $1 $2"
-function func_wrapper {
-  let TOTAL++
-  func_name=$1
-  modul_name=$2
-  func_print=$3
-  cis_name=$4
-  shift
-  args=$@
-  printf "${cis_name},${func_print},$modul_name,"
-  ${func_name} ${args} >/dev/null 2>&1
-  if [[ "$?" -eq 0 ]]; then
-    let PASS++
-    echo PASS
-  else
-    let FAILED++
-    echo FAIL
-  fi
-}
-
-function check_web_server_not_in_use {
-  if ! systemctl is-active httpd; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_xinetd_not_in_use {
-  if ! systemctl is-active xinetd; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_mail_transfer_agents_local_only {
-  if grep -q "^inet_interfaces = loopback-only" /etc/postfix/main.cf; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_approved_services_listening {
-  if netstat -tuln | grep -q LISTEN; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ftp_client_not_installed {
-  if ! rpm -q ftp; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_nis_client_not_installed {
-  if ! rpm -q ypbind; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_telnet_client_not_installed {
-  if ! rpm -q telnet; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_tftp_client_not_installed {
-  if ! rpm -q tftp; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ipv6_status_identified {
-  if [ -f /proc/net/if_inet6 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_ip_forwarding_disabled {
-  if [ $(sysctl net.ipv4.ip_forward | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_packet_redirect_sending_disabled {
-  if [ $(sysctl net.ipv4.conf.all.send_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_bogus_icmp_responses_ignored {
-  if [ $(sysctl net.ipv4.icmp_ignore_bogus_error_responses | awk '{print $3}') -eq 1 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_broadcast_icmp_requests_ignored {
-  if [ $(sysctl net.ipv4.icmp_echo_ignore_broadcasts | awk '{print $3}') -eq 1 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_icmp_redirects_not_accepted {
-  if [ $(sysctl net.ipv4.conf.all.accept_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_secure_icmp_redirects_not_accepted {
-  if [ $(sysctl net.ipv4.conf.all.secure_redirects | awk '{print $3}') -eq 0 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
+# Function to check if reverse path filtering is enabled
 function check_reverse_path_filtering_enabled {
   if [ $(sysctl net.ipv4.conf.all.rp_filter | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -925,6 +647,7 @@ function check_reverse_path_filtering_enabled {
   fi
 }
 
+# Function to check if source routed packets are not accepted
 function check_source_routed_packets_not_accepted {
   if [ $(sysctl net.ipv4.conf.all.accept_source_route | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -933,6 +656,7 @@ function check_source_routed_packets_not_accepted {
   fi
 }
 
+# Function to check if suspicious packets are logged
 function check_suspicious_packets_logged {
   if [ $(sysctl net.ipv4.conf.all.log_martians | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -941,6 +665,7 @@ function check_suspicious_packets_logged {
   fi
 }
 
+# Function to check if TCP SYN cookies are enabled
 function check_tcp_syn_cookies_enabled {
   if [ $(sysctl net.ipv4.tcp_syncookies | awk '{print $3}') -eq 1 ]; then
     return 0
@@ -949,6 +674,7 @@ function check_tcp_syn_cookies_enabled {
   fi
 }
 
+# Function to check if IPv6 router advertisements are not accepted
 function check_ipv6_router_advertisements_not_accepted {
   if [ $(sysctl net.ipv6.conf.all.accept_ra | awk '{print $3}') -eq 0 ]; then
     return 0
@@ -957,6 +683,7 @@ function check_ipv6_router_advertisements_not_accepted {
   fi
 }
 
+# Function to check if nftables is installed
 function check_nftables_installed {
   if rpm -q nftables; then
     return 0
@@ -965,6 +692,7 @@ function check_nftables_installed {
   fi
 }
 
+# Function to check if a single firewall configuration utility is in use
 function check_single_firewall_utility_in_use {
   if systemctl is-active firewalld && ! systemctl is-active iptables; then
     return 0
@@ -973,6 +701,7 @@ function check_single_firewall_utility_in_use {
   fi
 }
 
+# Function to check if nftables base chains exist
 function check_nftables_base_chains_exist {
   if nft list ruleset | grep -q "chain input"; then
     return 0
@@ -981,6 +710,7 @@ function check_nftables_base_chains_exist {
   fi
 }
 
+# Function to check if firewall loopback traffic is configured
 function check_firewall_loopback_traffic_configured {
   if nft list ruleset | grep -q "iif lo accept"; then
     return 0
@@ -989,6 +719,7 @@ function check_firewall_loopback_traffic_configured {
   fi
 }
 
+# Function to check if firewalld drops unnecessary services
 function check_firewalld_drops_unnecessary_services {
   if firewall-cmd --list-all | grep -q "services: "; then
     return 0
@@ -997,6 +728,7 @@ function check_firewalld_drops_unnecessary_services {
   fi
 }
 
+# Function to check if nftables established connections are configured
 function check_nftables_established_connections_configured {
   if nft list ruleset | grep -q "ct state established,related accept"; then
     return 0
@@ -1005,6 +737,7 @@ function check_nftables_established_connections_configured {
   fi
 }
 
+# Function to check if nftables default deny policy is configured
 function check_nftables_default_deny_policy {
   if nft list ruleset | grep -q "policy drop"; then
     return 0
@@ -1013,6 +746,7 @@ function check_nftables_default_deny_policy {
   fi
 }
 
+# Function to check if cron daemon is enabled
 function check_cron_daemon_enabled {
   if systemctl is-active crond; then
     return 0
@@ -1021,78 +755,88 @@ function check_cron_daemon_enabled {
   fi
 }
 
+# Function to check permissions on crontab
 function check_permissions_crontab {
-  if [ $(stat -c "%a" /etc/crontab) -eq 600 ]; then
+  if [ $(stat -c "%a" $CRONTAB) -eq 600 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on cron.hourly
 function check_permissions_cron_hourly {
-  if [ $(stat -c "%a" /etc/cron.hourly) -eq 700 ]; then
+  if [ $(stat -c "%a" $CRON_HOURLY) -eq 700 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on cron.daily
 function check_permissions_cron_daily {
-  if [ $(stat -c "%a" /etc/cron.daily) -eq 700 ]; then
+  if [ $(stat -c "%a" $CRON_DAILY) -eq 700 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on cron.weekly
 function check_permissions_cron_weekly {
-  if [ $(stat -c "%a" /etc/cron.weekly) -eq 700 ]; then
+  if [ $(stat -c "%a" $CRON_WEEKLY) -eq 700 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on cron.monthly
 function check_permissions_cron_monthly {
-  if [ $(stat -c "%a" /etc/cron.monthly) -eq 700 ]; then
+  if [ $(stat -c "%a" $CRON_MONTHLY) -eq 700 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on cron.d
 function check_permissions_cron_d {
-  if [ $(stat -c "%a" /etc/cron.d) -eq 700 ]; then
+  if [ $(stat -c "%a" $CRON_DIR) -eq 700 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if crontab is restricted to authorized users
 function check_crontab_restricted {
-  if [ -f /etc/cron.allow ] && [ ! -f /etc/cron.deny ]; then
+  if [ -f $CRON_ALLOW ] && [ ! -f $CRON_DENY ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if at is restricted to authorized users
 function check_at_restricted {
-  if [ -f /etc/at.allow ] && [ ! -f /etc/at.deny ]; then
+  if [ -f $AT_ALLOW ] && [ ! -f $AT_DENY ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on sshd_config
 function check_permissions_sshd_config {
-  if [ $(stat -c "%a" /etc/ssh/sshd_config) -eq 600 ]; then
+  if [ $(stat -c "%a" $SSHD_CFG) -eq 600 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on SSH private host key files
 function check_permissions_ssh_private_keys {
   for key in /etc/ssh/*_key; do
     if [ $(stat -c "%a" $key) -ne 600 ]; then
@@ -1102,6 +846,7 @@ function check_permissions_ssh_private_keys {
   return 0
 }
 
+# Function to check permissions on SSH public host key files
 function check_permissions_ssh_public_keys {
   for key in /etc/ssh/*.pub; do
     if [ $(stat -c "%a" $key) -ne 644 ]; then
@@ -1111,174 +856,178 @@ function check_permissions_ssh_public_keys {
   return 0
 }
 
+# Function to check if sshd access is configured
 function check_sshd_access_configured {
-  if grep -q "AllowUsers" /etc/ssh/sshd_config; then
+  if grep -q "AllowUsers" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd banner is configured
 function check_sshd_banner_configured {
-  if grep -q "Banner" /etc/ssh/sshd_config; then
+  if grep -q "Banner" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd ciphers are configured
 function check_sshd_ciphers_configured {
-  if grep -q "Ciphers" /etc/ssh/sshd_config; then
+  if grep -q "Ciphers" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd client alive settings are configured
 function check_sshd_client_alive_configured {
-  if grep -q "ClientAliveInterval" /etc/ssh/sshd_config && grep -q "ClientAliveCountMax" /etc/ssh/sshd_config; then
+  if grep -q "ClientAliveInterval" $SSHD_CFG && grep -q "ClientAliveCountMax" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
-function check_sshd_ciphers_configured {
-  if grep -q "Ciphers" /etc/ssh/sshd_config; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-function check_sshd_client_alive_configured {
-  if grep -q "ClientAliveInterval" /etc/ssh/sshd_config && grep -q "ClientAliveCountMax" /etc/ssh/sshd_config; then
-    return 0
-  else
-    return 1
-  fi
-}
-
+# Function to check if sshd disable forwarding is enabled
 function check_sshd_disable_forwarding_enabled {
-  if grep -q "DisableForwarding yes" /etc/ssh/sshd_config; then
+  if grep -q "DisableForwarding yes" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd hostbased authentication is disabled
 function check_sshd_hostbased_authentication_disabled {
-  if grep -q "HostbasedAuthentication no" /etc/ssh/sshd_config; then
+  if grep -q "HostbasedAuthentication no" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd ignore rhosts is enabled
 function check_sshd_ignore_rhosts_enabled {
-  if grep -q "IgnoreRhosts yes" /etc/ssh/sshd_config; then
+  if grep -q "IgnoreRhosts yes" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd kex algorithms are configured
 function check_sshd_kex_algorithms_configured {
-  if grep -q "KexAlgorithms" /etc/ssh/sshd_config; then
+  if grep -q "KexAlgorithms" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd login grace time is configured
 function check_sshd_login_grace_time_configured {
-  if grep -q "LoginGraceTime" /etc/ssh/sshd_config; then
+  if grep -q "LoginGraceTime" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd log level is configured
 function check_sshd_log_level_configured {
-  if grep -q "LogLevel" /etc/ssh/sshd_config; then
+  if grep -q "LogLevel" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd MACs are configured
 function check_sshd_macs_configured {
-  if grep -q "MACs" /etc/ssh/sshd_config; then
+  if grep -q "MACs" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd max auth tries is configured
 function check_sshd_max_auth_tries_configured {
-  if grep -q "MaxAuthTries" /etc/ssh/sshd_config; then
+  if grep -q "MaxAuthTries" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd max sessions is configured
 function check_sshd_max_sessions_configured {
-  if grep -q "MaxSessions" /etc/ssh/sshd_config; then
+  if grep -q "MaxSessions" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd max startups is configured
 function check_sshd_max_startups_configured {
-  if grep -q "MaxStartups" /etc/ssh/sshd_config; then
+  if grep -q "MaxStartups" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd permit empty passwords is disabled
 function check_sshd_permit_empty_passwords_disabled {
-  if grep -q "PermitEmptyPasswords no" /etc/ssh/sshd_config; then
+  if grep -q "PermitEmptyPasswords no" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd permit root login is disabled
 function check_sshd_permit_root_login_disabled {
-  if grep -q "PermitRootLogin no" /etc/ssh/sshd_config; then
+  if grep -q "PermitRootLogin no" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd permit user environment is disabled
 function check_sshd_permit_user_environment_disabled {
-  if grep -q "PermitUserEnvironment no" /etc/ssh/sshd_config; then
+  if grep -q "PermitUserEnvironment no" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd use PAM is enabled
 function check_sshd_use_pam_enabled {
-  if grep -q "UsePAM yes" /etc/ssh/sshd_config; then
+  if grep -q "UsePAM yes" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sshd crypto policy is not set
 function check_sshd_crypto_policy_not_set {
-  if ! grep -q "CRYPTO_POLICY" /etc/ssh/sshd_config; then
+  if ! grep -q "CRYPTO_POLICY" $SSHD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if sudo is installed
 function check_sudo_installed {
   if rpm -q sudo; then
     return 0
@@ -1287,6 +1036,7 @@ function check_sudo_installed {
   fi
 }
 
+# Function to check if sudo commands use pty
 function check_sudo_commands_use_pty {
   if grep -q "Defaults use_pty" /etc/sudoers; then
     return 0
@@ -1295,6 +1045,7 @@ function check_sudo_commands_use_pty {
   fi
 }
 
+# Function to check if sudo log file exists
 function check_sudo_log_file_exists {
   if grep -q "Defaults logfile=" /etc/sudoers; then
     return 0
@@ -1303,6 +1054,7 @@ function check_sudo_log_file_exists {
   fi
 }
 
+# Function to check if sudo re-authentication is not disabled
 function check_sudo_reauth_not_disabled {
   if ! grep -q "Defaults !authenticate" /etc/sudoers; then
     return 0
@@ -1311,6 +1063,7 @@ function check_sudo_reauth_not_disabled {
   fi
 }
 
+# Function to check if sudo authentication timeout is configured
 function check_sudo_auth_timeout_configured {
   if grep -q "Defaults timestamp_timeout=" /etc/sudoers; then
     return 0
@@ -1319,14 +1072,16 @@ function check_sudo_auth_timeout_configured {
   fi
 }
 
+# Function to check if access to the su command is restricted
 function check_su_command_restricted {
-  if grep -q "auth required pam_wheel.so use_uid" /etc/pam.d/su; then
+  if grep -q "auth required pam_wheel.so use_uid" $PAM_SU; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if latest version of pam is installed
 function check_latest_pam_installed {
   if rpm -q pam; then
     return 0
@@ -1335,6 +1090,7 @@ function check_latest_pam_installed {
   fi
 }
 
+# Function to check if latest version of authselect is installed
 function check_latest_authselect_installed {
   if rpm -q authselect; then
     return 0
@@ -1343,6 +1099,7 @@ function check_latest_authselect_installed {
   fi
 }
 
+# Function to check if active authselect profile includes pam modules
 function check_authselect_profile_includes_pam {
   if authselect current | grep -q "Profile ID: sssd"; then
     return 0
@@ -1351,38 +1108,43 @@ function check_authselect_profile_includes_pam {
   fi
 }
 
+# Function to check if pam_faillock module is enabled
 function check_pam_faillock_enabled {
-  if grep -q "pam_faillock.so" /etc/pam.d/system-auth; then
+  if grep -q "pam_faillock.so" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_pwquality module is enabled
 function check_pam_pwquality_enabled {
-  if grep -q "pam_pwquality.so" /etc/pam.d/system-auth; then
+  if grep -q "pam_pwquality.so" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_pwhistory module is enabled
 function check_pam_pwhistory_enabled {
-  if grep -q "pam_pwhistory.so" /etc/pam.d/system-auth; then
+  if grep -q "pam_pwhistory.so" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_unix module is enabled
 function check_pam_unix_enabled {
-  if grep -q "pam_unix.so" /etc/pam.d/system-auth; then
+  if grep -q "pam_unix.so" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password failed attempts lockout is configured
 function check_password_failed_attempts_lockout {
   if grep -q "deny=" /etc/security/faillock.conf; then
     return 0
@@ -1391,6 +1153,7 @@ function check_password_failed_attempts_lockout {
   fi
 }
 
+# Function to check if password unlock time is configured
 function check_password_unlock_time {
   if grep -q "unlock_time=" /etc/security/faillock.conf; then
     return 0
@@ -1399,142 +1162,160 @@ function check_password_unlock_time {
   fi
 }
 
+# Function to check if password number of changed characters is configured
 function check_password_changed_characters {
-  if grep -q "difok=" /etc/security/pwquality.conf; then
+  if grep -q "difok=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password length is configured
 function check_password_length {
-  if grep -q "minlen=" /etc/security/pwquality.conf; then
+  if grep -q "minlen=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password complexity is configured
 function check_password_complexity {
-  if grep -q "minclass=" /etc/security/pwquality.conf; then
+  if grep -q "minclass=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password same consecutive characters is configured
 function check_password_same_consecutive_characters {
-  if grep -q "maxrepeat=" /etc/security/pwquality.conf; then
+  if grep -q "maxrepeat=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password maximum sequential characters is configured
 function check_password_maximum_sequential_characters {
-  if grep -q "maxsequence=" /etc/security/pwquality.conf; then
+  if grep -q "maxsequence=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password dictionary check is enabled
 function check_password_dictionary_check {
-  if grep -q "dictcheck=" /etc/security/pwquality.conf; then
+  if grep -q "dictcheck=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password quality is enforced for the root user
 function check_password_quality_enforced_root {
-  if grep -q "enforce_for_root" /etc/security/pwquality.conf; then
+  if grep -q "enforce_for_root" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password history remember is configured
 function check_password_history_remember_configured {
-  if grep -q "remember=" /etc/security/pwquality.conf; then
+  if grep -q "remember=" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password history is enforced for the root user
 function check_password_history_enforced_root {
-  if grep -q "enforce_for_root" /etc/security/pwquality.conf; then
+  if grep -q "enforce_for_root" $PWQUAL_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_pwhistory includes use_authtok
 function check_pam_pwhistory_use_authtok {
-  if grep -q "use_authtok" /etc/pam.d/system-auth; then
+  if grep -q "use_authtok" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_unix does not include nullok
 function check_pam_unix_not_nullok {
-  if ! grep -q "nullok" /etc/pam.d/system-auth; then
+  if ! grep -q "nullok" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_unix does not include remember
 function check_pam_unix_not_remember {
-  if ! grep -q "remember" /etc/pam.d/system-auth; then
+  if ! grep -q "remember" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_unix includes a strong password hashing algorithm
 function check_pam_unix_strong_hashing {
-  if grep -q "sha512" /etc/pam.d/system-auth; then
+  if grep -q "sha512" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if pam_unix includes use_authtok
 function check_pam_unix_use_authtok {
-  if grep -q "use_authtok" /etc/pam.d/system-auth; then
+  if grep -q "use_authtok" $SYSTEM_AUTH; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if strong password hashing algorithm is configured
 function check_strong_password_hashing_algorithm {
-  if grep -q "sha512" /etc/login.defs; then
+  if grep -q "sha512" $LOGIN_DEFS; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password expiration is 365 days or less
 function check_password_expiration {
-  if grep -q "PASS_MAX_DAYS" /etc/login.defs && [ $(grep "PASS_MAX_DAYS" /etc/login.defs | awk '{print $2}') -le 365 ]; then
+  if grep -q "PASS_MAX_DAYS" $LOGIN_DEFS && [ $(grep "PASS_MAX_DAYS" $LOGIN_DEFS | awk '{print $2}') -le 365 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if password expiration warning days is 7 or more
 function check_password_expiration_warning {
-  if grep -q "PASS_WARN_AGE" /etc/login.defs && [ $(grep "PASS_WARN_AGE" /etc/login.defs | awk '{print $2}') -ge 7 ]; then
+  if grep -q "PASS_WARN_AGE" $LOGIN_DEFS && [ $(grep "PASS_WARN_AGE" $LOGIN_DEFS | awk '{print $2}') -ge 7 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if inactive password lock is 30 days or less
 function check_inactive_password_lock {
   if grep -q "INACTIVE" /etc/default/useradd && [ $(grep "INACTIVE" /etc/default/useradd | awk '{print $2}') -le 30 ]; then
     return 0
@@ -1543,6 +1324,7 @@ function check_inactive_password_lock {
   fi
 }
 
+# Function to check if all users last password change date is in the past
 function check_users_last_password_change {
   if chage -l $(getent passwd | awk -F: '$3 >= 1000 {print $1}') | grep -q "Last password change"; then
     return 0
@@ -1551,6 +1333,7 @@ function check_users_last_password_change {
   fi
 }
 
+# Function to check if default group for the root account is GID 0
 function check_default_group_root_gid {
   if [ $(id -g root) -eq 0 ]; then
     return 0
@@ -1559,6 +1342,7 @@ function check_default_group_root_gid {
   fi
 }
 
+# Function to check if root user umask is configured
 function check_root_user_umask {
   if grep -q "umask 077" /root/.bashrc; then
     return 0
@@ -1567,14 +1351,16 @@ function check_root_user_umask {
   fi
 }
 
+# Function to check if system accounts are secured
 function check_system_accounts_secured {
-  if ! awk -F: '($3 < 1000) {print $1}' /etc/passwd | grep -vE "root|sync|shutdown|halt"; then
+  if ! awk -F: '($3 < 1000) {print $1}' $PASSWD | grep -vE "root|sync|shutdown|halt"; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if root password is set
 function check_root_password_set {
   if passwd -S root | grep -q "P"; then
     return 0
@@ -1583,22 +1369,25 @@ function check_root_password_set {
   fi
 }
 
+# Function to check if default user shell timeout is configured
 function check_default_user_shell_timeout {
-  if grep -q "TMOUT" /etc/profile; then
+  if grep -q "TMOUT" $PROFILE; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if default user umask is configured
 function check_default_user_umask {
-  if grep -q "umask 027" /etc/profile; then
+  if grep -q "umask 027" $PROFILE; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if logrotate is configured
 function check_logrotate_configured {
   if [ -f /etc/logrotate.conf ]; then
     return 0
@@ -1607,6 +1396,7 @@ function check_logrotate_configured {
   fi
 }
 
+# Function to check if all logfiles have appropriate access configured
 function check_logfiles_access_configured {
   if find /var/log -type f -perm /o+w; then
     return 1
@@ -1615,6 +1405,7 @@ function check_logfiles_access_configured {
   fi
 }
 
+# Function to check if rsyslog is installed
 function check_rsyslog_installed {
   if rpm -q rsyslog; then
     return 0
@@ -1623,6 +1414,7 @@ function check_rsyslog_installed {
   fi
 }
 
+# Function to check if rsyslog service is enabled
 function check_rsyslog_service_enabled {
   if systemctl is-enabled rsyslog; then
     return 0
@@ -1631,46 +1423,52 @@ function check_rsyslog_service_enabled {
   fi
 }
 
+# Function to check if journald is configured to send logs to rsyslog
 function check_journald_send_logs_to_rsyslog {
-  if grep -q "ForwardToSyslog=yes" /etc/systemd/journald.conf; then
+  if grep -q "ForwardToSyslog=yes" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if rsyslog default file permissions are configured
 function check_rsyslog_default_file_permissions {
-  if grep -q "FileCreateMode" /etc/rsyslog.conf; then
+  if grep -q "FileCreateMode" $RSYSLOG_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if logging is configured
 function check_logging_configured {
-  if [ -f /etc/rsyslog.conf ] || [ -f /etc/rsyslog.d/*.conf ]; then
+  if [ -f $RSYSLOG_CNF ] || [ -f /etc/rsyslog.d/*.conf ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if rsyslog is configured to send logs to a remote log host
 function check_rsyslog_send_logs_remote {
-  if grep -q "action(type=\"omfwd\"" /etc/rsyslog.conf; then
+  if grep -q "action(type=\"omfwd\"" $RSYSLOG_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if rsyslog is not configured to receive logs from a remote client
 function check_rsyslog_not_receive_remote_logs {
-  if ! grep -q "module(load=\"imtcp\")" /etc/rsyslog.conf; then
+  if ! grep -q "module(load=\"imtcp\")" $RSYSLOG_CNF; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if journald service is enabled
 function check_journald_service_enabled {
   if systemctl is-enabled systemd-journald; then
     return 0
@@ -1679,38 +1477,43 @@ function check_journald_service_enabled {
   fi
 }
 
+# Function to check if journald is configured to compress large log files
 function check_journald_compress_logs {
-  if grep -q "Compress=yes" /etc/systemd/journald.conf; then
+  if grep -q "Compress=yes" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if journald is configured to write logfiles to persistent disk
 function check_journald_persistent_storage {
-  if grep -q "Storage=persistent" /etc/systemd/journald.conf; then
+  if grep -q "Storage=persistent" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if journald is not configured to send logs to rsyslog
 function check_journald_not_send_logs_to_rsyslog {
-  if ! grep -q "ForwardToSyslog=yes" /etc/systemd/journald.conf; then
+  if ! grep -q "ForwardToSyslog=yes" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if journald log rotation is configured per site policy
 function check_journald_log_rotation {
-  if grep -q "SystemMaxUse=" /etc/systemd/journald.conf; then
+  if grep -q "SystemMaxUse=" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if systemd-journal-remote is installed
 function check_systemd_journal_remote_installed {
   if rpm -q systemd-journal-remote; then
     return 0
@@ -1719,6 +1522,7 @@ function check_systemd_journal_remote_installed {
   fi
 }
 
+# Function to check if systemd-journal-remote is configured
 function check_systemd_journal_remote_configured {
   if [ -f /etc/systemd/journal-remote.conf ]; then
     return 0
@@ -1727,6 +1531,7 @@ function check_systemd_journal_remote_configured {
   fi
 }
 
+# Function to check if systemd-journal-remote is enabled
 function check_systemd_journal_remote_enabled {
   if systemctl is-enabled systemd-journal-remote; then
     return 0
@@ -1735,14 +1540,16 @@ function check_systemd_journal_remote_enabled {
   fi
 }
 
+# Function to check if journald is not configured to receive logs from a remote client
 function check_journald_not_receive_remote_logs {
-  if ! grep -q "ForwardToSyslog=yes" /etc/systemd/journald.conf; then
+  if ! grep -q "ForwardToSyslog=yes" $JOURNALD_CFG; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if AIDE is installed
 function check_aide_installed {
   if rpm -q aide; then
     return 0
@@ -1751,6 +1558,7 @@ function check_aide_installed {
   fi
 }
 
+# Function to check if filesystem integrity is regularly checked
 function check_filesystem_integrity_checked {
   if crontab -l | grep -q "aide --check"; then
     return 0
@@ -1759,6 +1567,7 @@ function check_filesystem_integrity_checked {
   fi
 }
 
+# Function to check if cryptographic mechanisms are used to protect the integrity of audit tools
 function check_crypto_mechanisms_audit_tools {
   if rpm -V aide | grep -q "5"; then
     return 0
@@ -1767,14 +1576,16 @@ function check_crypto_mechanisms_audit_tools {
   fi
 }
 
+# Function to check permissions on passwd
 function check_permissions_passwd {
-  if [ $(stat -c "%a" /etc/passwd) -eq 644 ]; then
+  if [ $(stat -c "%a" $PASSWD) -eq 644 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on passwd-
 function check_permissions_passwd_dash {
   if [ $(stat -c "%a" /etc/passwd-) -eq 600 ]; then
     return 0
@@ -1783,6 +1594,7 @@ function check_permissions_passwd_dash {
   fi
 }
 
+# Function to check permissions on opasswd
 function check_permissions_opasswd {
   if [ $(stat -c "%a" /etc/opasswd) -eq 600 ]; then
     return 0
@@ -1791,14 +1603,16 @@ function check_permissions_opasswd {
   fi
 }
 
+# Function to check permissions on group
 function check_permissions_group {
-  if [ $(stat -c "%a" /etc/group) -eq 644 ]; then
+  if [ $(stat -c "%a" $GROUP) -eq 644 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on group-
 function check_permissions_group_dash {
   if [ $(stat -c "%a" /etc/group-) -eq 600 ]; then
     return 0
@@ -1807,14 +1621,16 @@ function check_permissions_group_dash {
   fi
 }
 
+# Function to check permissions on shadow
 function check_permissions_shadow {
-  if [ $(stat -c "%a" /etc/shadow) -eq 000 ]; then
+  if [ $(stat -c "%a" $SHADOW) -eq 000 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on shadow-
 function check_permissions_shadow_dash {
   if [ $(stat -c "%a" /etc/shadow-) -eq 600 ]; then
     return 0
@@ -1823,14 +1639,16 @@ function check_permissions_shadow_dash {
   fi
 }
 
+# Function to check permissions on gshadow
 function check_permissions_gshadow {
-  if [ $(stat -c "%a" /etc/gshadow) -eq 000 ]; then
+  if [ $(stat -c "%a" $GSHADOW) -eq 000 ]; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check permissions on gshadow-
 function check_permissions_gshadow_dash {
   if [ $(stat -c "%a" /etc/gshadow-) -eq 600 ]; then
     return 0
@@ -1839,6 +1657,7 @@ function check_permissions_gshadow_dash {
   fi
 }
 
+# Function to check permissions on shells
 function check_permissions_shells {
   if [ $(stat -c "%a" /etc/shells) -eq 644 ]; then
     return 0
@@ -1847,6 +1666,7 @@ function check_permissions_shells {
   fi
 }
 
+# Function to check if world writable files and directories are secured
 function check_world_writable_files {
   if find / -xdev -type f -perm -0002; then
     return 1
@@ -1855,6 +1675,7 @@ function check_world_writable_files {
   fi
 }
 
+# Function to check if no unowned or ungrouped files or directories exist
 function check_no_unowned_files {
   if find / -xdev \( -nouser -o -nogroup \); then
     return 1
@@ -1863,6 +1684,7 @@ function check_no_unowned_files {
   fi
 }
 
+# Function to check if SUID and SGID files are reviewed
 function check_suid_sgid_files {
   if find / -xdev \( -perm -4000 -o -perm -2000 \); then
     return 0
@@ -1871,62 +1693,70 @@ function check_suid_sgid_files {
   fi
 }
 
+# Function to check if accounts in passwd use shadowed passwords
 function check_shadowed_passwords {
-  if awk -F: '($2 == "x")' /etc/passwd; then
+  if awk -F: '($2 == "x")' $PASSWD; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if shadow password fields are not empty
 function check_shadow_password_fields_not_empty {
-  if awk -F: '($2 == "")' /etc/shadow; then
+  if awk -F: '($2 == "")' $SHADOW; then
     return 1
   else
     return 0
   fi
 }
 
+# Function to check if all groups in passwd exist in group
 function check_groups_in_passwd_exist_in_group {
-  if awk -F: '{print $4}' /etc/passwd | while read group; do grep -q "^$group:" /etc/group; done; then
+  if awk -F: '{print $4}' $PASSWD | while read group; do grep -q "^$group:" $GROUP; done; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if no duplicate UIDs exist
 function check_no_duplicate_uids {
-  if awk -F: '{print $3}' /etc/passwd | sort | uniq -d; then
+  if awk -F: '{print $3}' $PASSWD | sort | uniq -d; then
     return 1
   else
     return 0
   fi
 }
 
+# Function to check if no duplicate GIDs exist
 function check_no_duplicate_gids {
-  if awk -F: '{print $3}' /etc/group | sort | uniq -d; then
+  if awk -F: '{print $3}' $GROUP | sort | uniq -d; then
     return 1
   else
     return 0
   fi
 }
 
+# Function to check if no duplicate user names exist
 function check_no_duplicate_usernames {
-  if awk -F: '{print $1}' /etc/passwd | sort | uniq -d; then
+  if awk -F: '{print $1}' $PASSWD | sort | uniq -d; then
     return 1
   else
     return 0
   fi
 }
 
+# Function to check if no duplicate group names exist
 function check_no_duplicate_groupnames {
-  if awk -F: '{print $1}' /etc/group | sort | uniq -d; then
+  if awk -F: '{print $1}' $GROUP | sort | uniq -d; then
     return 1
   else
     return 0
   fi
 }
 
+# Function to check if root path integrity is maintained
 function check_root_path_integrity {
   if echo $PATH | grep -q "::" || echo $PATH | grep -q ":$"; then
     return 1
@@ -1935,32 +1765,34 @@ function check_root_path_integrity {
   fi
 }
 
+# Function to check if root is the only UID 0 account
 function check_root_only_uid_0 {
-  if awk -F: '($3 == 0) {print $1}' /etc/passwd | grep -q "^root$"; then
+  if awk -F: '($3 == 0) {print $1}' $PASSWD | grep -q "^root$"; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if local interactive user home directories are configured
 function check_local_user_home_directories {
-  if awk -F: '($3 >= 1000 && $7 != "/sbin/nologin") {print $6}' /etc/passwd | while read dir; do [ -d "$dir" ]; done; then
+  if awk -F: '($3 >= 1000 && $7 != "/sbin/nologin") {print $6}' $PASSWD | while read dir; do [ -d "$dir" ]; done; then
     return 0
   else
     return 1
   fi
 }
 
+# Function to check if local interactive user dot files access is configured
 function check_local_user_dot_files_access {
-  if awk -F: '($3 >= 1000 && $7 != "/sbin/nologin") {print $6}' /etc/passwd | while read dir; do find "$dir" -name ".*" -perm /o+w; done; then
+  if awk -F: '($3 >= 1000 && $7 != "/sbin/nologin") {print $6}' $PASSWD | while read dir; do find "$dir" -name ".*" -perm /o+w; done; then
     return 1
   else
     return 0
   fi
 }
 
-#end_functions+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+# Main function to run all checks
 function main {
   # Kernel Module Checks
   cis_num="1.1.1.1"
@@ -2860,7 +2692,7 @@ function main {
 
 }
 
-
+# Function to print summary of results
 function summary {
   echo "","Scanning Completed","Total results","Total $TOTAL checks: $PASS passed ($(expr $PASS \* 100 / $TOTAL)%)/ $FAILED failed ($(expr $FAILED \* 100 / $TOTAL)%)"
 }
