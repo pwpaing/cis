@@ -1972,12 +1972,12 @@ function main {
   # Kernel Module Check
   cis_num="1.1.1.8"
   name="Ensure usb-storage kernel module is not available"
-  func_wrapper check_usb_storage_not_available "${name}" "${cis_num}"
+  func_wrapper check_usb_storage_not_available "usb-storage" "${name}" "${cis_num}"
 
   # Partition Check
   cis_num="1.1.2.1.1"
   name="Ensure /tmp is a separate partition"
-  func_wrapper check_tmp_separate_partition "${name}" "${cis_num}"
+  func_wrapper check_tmp_separate_partition "/tmp" "${name}" "${cis_num}"
 
   # Partition Option Checks
   cis_num="1.1.2.1.2"
@@ -2066,151 +2066,151 @@ function main {
 
   cis_num="1.2.2"
   name="Ensure gpgcheck is globally activated"
-  func_wrapper check_gpgcheck_globally_activated "${name}" "${cis_num}"
+  func_wrapper check_gpgcheck_globally_activated "yum_gpgcheck" "${name}" "${cis_num}"
 
   cis_num="1.2.4"
   name="Ensure package manager repositories are configured"
-  func_wrapper check_package_manager_repositories_configured "${name}" "${cis_num}"
+  func_wrapper check_package_manager_repositories_configured "/etc/yum.repos.d/" "${name}" "${cis_num}"
 
   cis_num="1.2.5"
   name="Ensure updates, patches, and additional security software are installed"
-  func_wrapper check_updates_installed "${name}" "${cis_num}"
+  func_wrapper check_updates_installed "yum check-update" "${name}" "${cis_num}"
 
   cis_num="1.3.1"
   name="Ensure bootloader password is set"
-  func_wrapper check_bootloader_password_set "${name}" "${cis_num}"
+  func_wrapper check_bootloader_password_set "check_boot_pass" "${name}" "${cis_num}"
 
   cis_num="1.3.2"
   name="Ensure permissions on bootloader config are configured"
-  func_wrapper check_bootloader_permissions_configured "${name}" "${cis_num}"
+  func_wrapper check_bootloader_permissions_configured "check_boot_perm" "${name}" "${cis_num}"
 
   cis_num="1.4.1"
   name="Ensure address space layout randomization (ASLR) is enabled"
-  func_wrapper check_aslr_enabled "${name}" "${cis_num}"
+  func_wrapper check_aslr_enabled "kernel.randomize_va_space" "${name}" "${cis_num}"
 
   cis_num="1.4.2"
   name="Ensure ptrace_scope is restricted"
-  func_wrapper check_ptrace_scope_restricted "${name}" "${cis_num}"
+  func_wrapper check_ptrace_scope_restricted "kernel.yama.ptrace_scope" "${name}" "${cis_num}"
 
   cis_num="1.4.3"
   name="Ensure core dump backtraces are disabled"
-  func_wrapper check_core_dump_backtraces_disabled "${name}" "${cis_num}"
+  func_wrapper check_core_dump_backtraces_disabled "fs.suid_dumpable" "${name}" "${cis_num}"
 
   cis_num="1.4.4"
   name="Ensure core dump storage is disabled"
-  func_wrapper check_core_dump_storage_disabled "${name}" "${cis_num}"
+  func_wrapper check_core_dump_storage_disabled "fs.suid_dumpable" "${name}" "${cis_num}"
 
   cis_num="1.5.1.1"
   name="Ensure SELinux is installed"
-  func_wrapper check_selinux_installed "${name}" "${cis_num}"
+  func_wrapper check_selinux_installed "libselinux" "${name}" "${cis_num}"
 
   cis_num="1.5.1.2"
   name="Ensure SELinux is not disabled in bootloader configuration"
-  func_wrapper check_selinux_not_disabled_in_bootloader "${name}" "${cis_num}"
+  func_wrapper check_selinux_not_disabled_in_bootloader "verify_selinux_grubcfg" "${name}" "${cis_num}"
 
   cis_num="1.5.1.3"
   name="Ensure SELinux policy is configured"
-  func_wrapper check_selinux_policy_configured "${name}" "${cis_num}"
+  func_wrapper check_selinux_policy_configured "verify_selinux_policy" "${name}" "${cis_num}"
 
   cis_num="1.5.1.4"
   name="Ensure the SELinux mode is not disabled"
-  func_wrapper check_selinux_mode_not_disabled "${name}" "${cis_num}"
+  func_wrapper check_selinux_mode_not_disabled "verify_selinux_state" "${name}" "${cis_num}"
 
   cis_num="1.5.1.6"
   name="Ensure no unconfined services exist"
-  func_wrapper check_no_unconfined_services_exist "${name}" "${cis_num}"
+  func_wrapper check_no_unconfined_services_exist "unconfined_procs" "${name}" "${cis_num}"
 
   cis_num="1.5.1.7"
   name="Ensure the MCS Translation Service (mcstrans) is not installed"
-  func_wrapper check_mcstrans_not_installed "${name}" "${cis_num}"
+  func_wrapper check_mcstrans_not_installed "mcstrans" "${name}" "${cis_num}"
 
    # SETroubleshoot Check
   cis_num="1.5.1.8"
   name="Ensure SETroubleshoot is not installed"
-  func_wrapper check_setroubleshoot_not_installed "${name}" "${cis_num}"
+  func_wrapper check_setroubleshoot_not_installed "setroubleshoot" "${name}" "${cis_num}"
 
 
   cis_num="1.6.1"
   name="Ensure system wide crypto policy is not set to legacy"
-  func_wrapper check_crypto_policy_not_legacy "${name}" "${cis_num}"
+  func_wrapper check_crypto_policy_not_legacy "chk_cryptopolicy_not_legacy" "${name}" "${cis_num}"
 
   cis_num="1.6.2"
   name="Ensure system wide crypto policy disables sha1 hash and signature support"
-  func_wrapper check_crypto_policy_disables_sha1 "${name}" "${cis_num}"
+  func_wrapper check_crypto_policy_disables_sha1 "chk_crypto_policy_disables_sha1" "${name}" "${cis_num}"
 
   cis_num="1.6.3"
   name="Ensure system wide crypto policy disables cbc for ssh"
-  func_wrapper check_crypto_policy_disables_cbc "${name}" "${cis_num}"
+  func_wrapper check_crypto_policy_disables_cbc "CBC" "${name}" "${cis_num}"
 
   cis_num="1.6.4"
   name="Ensure system wide crypto policy disables macs less than 128 bits"
-  func_wrapper check_crypto_policy_disables_weak_macs "${name}" "${cis_num}"
+  func_wrapper check_crypto_policy_disables_weak_macs "MACS" "${name}" "${cis_num}"
 
   cis_num="1.7.1"
   name="Ensure message of the day is configured properly"
-  func_wrapper check_motd_configured_properly "${name}" "${cis_num}"
+  func_wrapper check_motd_configured_properly "MOTD" "${name}" "${cis_num}"
 
   cis_num="1.7.2"
   name="Ensure local login warning banner is configured properly"
-  func_wrapper check_local_login_warning_banner_configured "${name}" "${cis_num}"
+  func_wrapper check_local_login_warning_banner_configured "/etc/issue" "${name}" "${cis_num}"
 
   cis_num="1.7.3"
   name="Ensure remote login warning banner is configured properly"
-  func_wrapper check_remote_login_warning_banner_configured "${name}" "${cis_num}"
+  func_wrapper check_remote_login_warning_banner_configured "/etc/issue" "${name}" "${cis_num}"
   # Access Configuration Checks
   cis_num="1.7.4"
   name="Ensure access to /etc/motd is configured"
-  func_wrapper check_access_motd "${name}" "${cis_num}"
+  func_wrapper check_access_motd "etc/motd" "${name}" "${cis_num}"
 
   cis_num="1.7.5"
   name="Ensure access to /etc/issue is configured"
-  func_wrapper check_access_issue "${name}" "${cis_num}"
+  func_wrapper check_access_issue "etc/issue" "${name}" "${cis_num}"
 
   cis_num="1.7.6"
   name="Ensure access to /etc/issue.net is configured"
-  func_wrapper check_access_issue_net "${name}" "${cis_num}"
+  func_wrapper check_access_issue_net "/etc/issue.net" "${name}" "${cis_num}"
 
   # GDM Configuration Checks
   cis_num="1.8.2"
   name="Ensure GDM login banner is configured"
-  func_wrapper check_gdm_login_banner "${name}" "${cis_num}"
+  func_wrapper check_gdm_login_banner "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.3"
   name="Ensure GDM disable-user-list option is enabled"
-  func_wrapper check_gdm_disable_user_list "${name}" "${cis_num}"
+  func_wrapper check_gdm_disable_user_list "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.4"
   name="Ensure GDM screen locks when the user is idle"
-  func_wrapper check_gdm_screen_lock_idle "${name}" "${cis_num}"
+  func_wrapper check_gdm_screen_lock_idle "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.5"
   name="Ensure GDM screen locks cannot be overridden"
-  func_wrapper check_gdm_screen_lock_override "${name}" "${cis_num}"
+  func_wrapper check_gdm_screen_lock_override "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.8"
   name="Ensure GDM autorun-never is enabled"
-  func_wrapper check_gdm_autorun_never "${name}" "${cis_num}"
+  func_wrapper check_gdm_autorun_never "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.9"
   name="Ensure GDM autorun-never is not overridden"
-  func_wrapper check_gdm_autorun_never_override "${name}" "${cis_num}"
+  func_wrapper check_gdm_autorun_never_override "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   cis_num="1.8.10"
   name="Ensure XDMCP is not enabled"
-  func_wrapper check_xdmcp_not_enabled "${name}" "${cis_num}"
+  func_wrapper check_xdmcp_not_enabled "/etc/gdm/custom.conf" "${name}" "${cis_num}"
 
   # Time Synchronization Checks
   cis_num="2.1.1"
   name="Ensure time synchronization is in use"
-  func_wrapper check_time_sync_in_use "${name}" "${cis_num}"
+  func_wrapper check_time_sync_in_use "ntpd" "${name}" "${cis_num}"
 
   cis_num="2.1.2"
   name="Ensure chrony is configured"
-  func_wrapper check_chrony_configured "${name}" "${cis_num}"
+  func_wrapper check_chrony_configured "chronyd" "${name}" "${cis_num}"
 
   cis_num="2.1.3"
   name="Ensure chrony is not run as the root user"
-  func_wrapper check_chrony_not_root "${name}" "${cis_num}"
+  func_wrapper check_chrony_not_root "chronyd" "${name}" "${cis_num}"
 
   # Service Checks
   cis_num="2.2.3"
@@ -2219,197 +2219,197 @@ function main {
 
   cis_num="2.2.4"
   name="Ensure dns server services are not in use"
-  func_wrapper check_dns_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_dns_not_in_use "dhcpd" "${name}" "${cis_num}"
 
   cis_num="2.2.5"
   name="Ensure dnsmasq services are not in use"
-  func_wrapper check_dnsmasq_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_dnsmasq_not_in_use "dnsmasq" "${name}" "${cis_num}"
 
   cis_num="2.2.6"
   name="Ensure samba file server services are not in use"
-  func_wrapper check_samba_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_samba_not_in_use "samba" "${name}" "${cis_num}"
 
   cis_num="2.2.7"
   name="Ensure ftp server services are not in use"
-  func_wrapper check_ftp_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_ftp_not_in_use "ftp" "${name}" "${cis_num}"
 
   cis_num="2.2.8"
   name="Ensure message access server services are not in use"
-  func_wrapper check_message_access_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_message_access_not_in_use "dovecot" "${name}" "${cis_num}"
 
   cis_num="2.2.9"
   name="Ensure network file system services are not in use"
-  func_wrapper check_nfs_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_nfs_not_in_use "nfs" "${name}" "${cis_num}"
 
   cis_num="2.2.10"
   name="Ensure nis server services are not in use"
-  func_wrapper check_nis_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_nis_not_in_use "ypserv" "${name}" "${cis_num}"
 
   cis_num="2.2.12"
   name="Ensure rpcbind services are not in use"
-  func_wrapper check_rpcbind_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_rpcbind_not_in_use "rpcbind" "${name}" "${cis_num}"
 
   cis_num="2.2.13"
   name="Ensure rsync services are not in use"
-  func_wrapper check_rsync_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_rsync_not_in_use "rsync" "${name}" "${cis_num}"
 
   cis_num="2.2.14"
   name="Ensure snmp services are not in use"
-  func_wrapper check_snmp_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_snmp_not_in_use "snmp" "${name}" "${cis_num}"
 
   cis_num="2.2.15"
   name="Ensure telnet server services are not in use"
-  func_wrapper check_telnet_server_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_telnet_server_not_in_use "telnet" "${name}" "${cis_num}"
 
   cis_num="2.2.16"
   name="Ensure tftp server services are not in use"
-  func_wrapper check_tftp_server_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_tftp_server_not_in_use "tftp" "${name}" "${cis_num}"
 
   cis_num="2.2.17"
   name="Ensure web proxy server services are not in use"
-  func_wrapper check_web_proxy_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_web_proxy_not_in_use "squid" "${name}" "${cis_num}"
 
   # Service Checks
   cis_num="2.2.18"
   name="Ensure web server services are not in use"
-  func_wrapper check_web_server_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_web_server_not_in_use "httpd" "${name}" "${cis_num}"
 
   cis_num="2.2.19"
   name="Ensure xinetd services are not in use"
-  func_wrapper check_xinetd_not_in_use "${name}" "${cis_num}"
+  func_wrapper check_xinetd_not_in_use "xinetd" "${name}" "${cis_num}"
 
   cis_num="2.2.21"
   name="Ensure mail transfer agents are configured for local-only mode"
-  func_wrapper check_mail_transfer_agents_local_only "${name}" "${cis_num}"
+  func_wrapper check_mail_transfer_agents_local_only "/etc/postfix/main.cf" "${name}" "${cis_num}"
 
   cis_num="2.2.22"
   name="Ensure only approved services are listening on a network interface"
-  func_wrapper check_approved_services_listening "${name}" "${cis_num}"
+  func_wrapper check_approved_services_listening "chk netstat" "${name}" "${cis_num}"
 
   cis_num="2.3.1"
   name="Ensure ftp client is not installed"
-  func_wrapper check_ftp_client_not_installed "${name}" "${cis_num}"
+  func_wrapper check_ftp_client_not_installed "ftp" "${name}" "${cis_num}"
 
   cis_num="2.3.3"
   name="Ensure nis client is not installed"
-  func_wrapper check_nis_client_not_installed "${name}" "${cis_num}"
+  func_wrapper check_nis_client_not_installed "nis" "${name}" "${cis_num}"
 
   cis_num="2.3.4"
   name="Ensure telnet client is not installed"
-  func_wrapper check_telnet_client_not_installed "${name}" "${cis_num}"
+  func_wrapper check_telnet_client_not_installed "telnet" "${name}" "${cis_num}"
 
   cis_num="2.3.5"
   name="Ensure tftp client is not installed"
-  func_wrapper check_tftp_client_not_installed "${name}" "${cis_num}"
+  func_wrapper check_tftp_client_not_installed "tftp" "${name}" "${cis_num}"
 
   # IPv6 Status Check
   cis_num="3.1.1"
   name="Ensure IPv6 status is identified"
-  func_wrapper check_ipv6_status_identified "${name}" "${cis_num}"
+  func_wrapper check_ipv6_status_identified "/proc/net/if_inet6" "${name}" "${cis_num}"
 
   # Network Configuration Checks
   cis_num="3.3.1"
   name="Ensure ip forwarding is disabled"
-  func_wrapper check_ip_forwarding_disabled "${name}" "${cis_num}"
+  func_wrapper check_ip_forwarding_disabled "net.ipv4.ip_forward" "${name}" "${cis_num}"
 
   cis_num="3.3.2"
   name="Ensure packet redirect sending is disabled"
-  func_wrapper check_packet_redirect_sending_disabled "${name}" "${cis_num}"
+  func_wrapper check_packet_redirect_sending_disabled "net.ipv4.conf.all.send_redirects" "${name}" "${cis_num}"
 
   cis_num="3.3.3"
   name="Ensure bogus icmp responses are ignored"
-  func_wrapper check_bogus_icmp_responses_ignored "${name}" "${cis_num}"
+  func_wrapper check_bogus_icmp_responses_ignored "net.ipv4.icmp_ignore_bogus_error_responses" "${name}" "${cis_num}"
 
   cis_num="3.3.4"
   name="Ensure broadcast icmp requests are ignored"
-  func_wrapper check_broadcast_icmp_requests_ignored "${name}" "${cis_num}"
+  func_wrapper check_broadcast_icmp_requests_ignored "net.ipv4.icmp_echo_ignore_broadcasts" "${name}" "${cis_num}"
 
   cis_num="3.3.5"
   name="Ensure icmp redirects are not accepted"
-  func_wrapper check_icmp_redirects_not_accepted "${name}" "${cis_num}"
+  func_wrapper check_icmp_redirects_not_accepted "net.ipv4.conf.all.accept_redirects" "${name}" "${cis_num}"
 
   cis_num="3.3.6"
   name="Ensure secure icmp redirects are not accepted"
-  func_wrapper check_secure_icmp_redirects_not_accepted "${name}" "${cis_num}"
+  func_wrapper check_secure_icmp_redirects_not_accepted "net.ipv4.conf.all.secure_redirects" "${name}" "${cis_num}"
 
   cis_num="3.3.7"
   name="Ensure reverse path filtering is enabled"
-  func_wrapper check_reverse_path_filtering_enabled "${name}" "${cis_num}"
+  func_wrapper check_reverse_path_filtering_enabled "net.ipv4.conf.all.rp_filter" "${name}" "${cis_num}"
 
   cis_num="3.3.8"
   name="Ensure source routed packets are not accepted"
-  func_wrapper check_source_routed_packets_not_accepted "${name}" "${cis_num}"
+  func_wrapper check_source_routed_packets_not_accepted "net.ipv4.conf.all.accept_source_route" "${name}" "${cis_num}"
 
   cis_num="3.3.9"
   name="Ensure suspicious packets are logged"
-  func_wrapper check_suspicious_packets_logged "${name}" "${cis_num}"
+  func_wrapper check_suspicious_packets_logged "net.ipv4.conf.all.log_martians" "${name}" "${cis_num}"
 
   cis_num="3.3.10"
   name="Ensure tcp syn cookies is enabled"
-  func_wrapper check_tcp_syn_cookies_enabled "${name}" "${cis_num}"
+  func_wrapper check_tcp_syn_cookies_enabled "net.ipv4.tcp_syncookies" "${name}" "${cis_num}"
 
   # IPv6 Router Advertisements Check
   cis_num="3.3.11"
   name="Ensure ipv6 router advertisements are not accepted"
-  func_wrapper check_ipv6_router_advertisements_not_accepted "${name}" "${cis_num}"
+  func_wrapper check_ipv6_router_advertisements_not_accepted "net.ipv6.conf.all.accept_ra" "${name}" "${cis_num}"
 
   # nftables Checks
   cis_num="3.4.1.1"
   name="Ensure nftables is installed"
-  func_wrapper check_nftables_installed "${name}" "${cis_num}"
+  func_wrapper check_nftables_installed "nftables" "${name}" "${cis_num}"
 
   cis_num="3.4.1.2"
   name="Ensure a single firewall configuration utility is in use"
-  func_wrapper check_single_firewall_utility_in_use "${name}" "${cis_num}"
+  func_wrapper check_single_firewall_utility_in_use "firewalld" "${name}" "${cis_num}"
 
   cis_num="3.4.2.1"
   name="Ensure nftables base chains exist"
-  func_wrapper check_nftables_base_chains_exist "${name}" "${cis_num}"
+  func_wrapper check_nftables_base_chains_exist "nftables" "${name}" "${cis_num}"
 
   cis_num="3.4.2.2"
   name="Ensure host based firewall loopback traffic is configured"
-  func_wrapper check_firewall_loopback_traffic_configured "${name}" "${cis_num}"
+  func_wrapper check_firewall_loopback_traffic_configured "iif lo accept" "${name}" "${cis_num}"
 
   cis_num="3.4.2.3"
   name="Ensure firewalld drops unnecessary services and ports"
-  func_wrapper check_firewalld_drops_unnecessary_services "${name}" "${cis_num}"
+  func_wrapper check_firewalld_drops_unnecessary_services "firewall-cmd" "${name}" "${cis_num}"
 
   cis_num="3.4.2.4"
   name="Ensure nftables established connections are configured"
-  func_wrapper check_nftables_established_connections_configured "${name}" "${cis_num}"
+  func_wrapper check_nftables_established_connections_configured "nftables" "${name}" "${cis_num}"
 
   cis_num="3.4.2.5"
   name="Ensure nftables default deny firewall policy"
-  func_wrapper check_nftables_default_deny_policy "${name}" "${cis_num}"
+  func_wrapper check_nftables_default_deny_policy "nftables" "${name}" "${cis_num}"
 
   # Cron Checks
   cis_num="4.1.1.1"
   name="Ensure cron daemon is enabled and active"
-  func_wrapper check_cron_daemon_enabled "${name}" "${cis_num}"
+  func_wrapper check_cron_daemon_enabled "crond" "${name}" "${cis_num}"
 
   cis_num="4.1.1.2"
   name="Ensure permissions on /etc/crontab are configured"
-  func_wrapper check_permissions_crontab "${name}" "${cis_num}"
+  func_wrapper check_permissions_crontab "/etc/cronta" "${name}" "${cis_num}"
 
   cis_num="4.1.1.3"
   name="Ensure permissions on /etc/cron.hourly are configured"
-  func_wrapper check_permissions_cron_hourly "${name}" "${cis_num}"
+  func_wrapper check_permissions_cron_hourly "/etc/cron.hourly" "${name}" "${cis_num}"
 
   cis_num="4.1.1.4"
   name="Ensure permissions on /etc/cron.daily are configured"
-  func_wrapper check_permissions_cron_daily "${name}" "${cis_num}"
+  func_wrapper check_permissions_cron_daily "/etc/cron.daily" "${name}" "${cis_num}"
 
   cis_num="4.1.1.5"
   name="Ensure permissions on /etc/cron.weekly are configured"
-  func_wrapper check_permissions_cron_weekly "${name}" "${cis_num}"
+  func_wrapper check_permissions_cron_weekly "/etc/cron.weekly" "${name}" "${cis_num}"
 
   cis_num="4.1.1.6"
   name="Ensure permissions on /etc/cron.monthly are configured"
-  func_wrapper check_permissions_cron_monthly "${name}" "${cis_num}"
+  func_wrapper check_permissions_cron_monthly "/etc/cron.monthly" "${name}" "${cis_num}"
 
   cis_num="4.1.1.7"
   name="Ensure permissions on /etc/cron.d are configured"
-  func_wrapper check_permissions_cron_d "${name}" "${cis_num}"
+  func_wrapper check_permissions_cron_d "/etc/cron.d" "${name}" "${cis_num}"
 
   cis_num="4.1.1.8"
   name="Ensure crontab is restricted to authorized users"
@@ -2417,452 +2417,452 @@ function main {
 
   cis_num="4.1.2.1"
   name="Ensure at is restricted to authorized users"
-  func_wrapper check_at_restricted "${name}" "${cis_num}"
+  func_wrapper check_at_restricted "cron_auth_users" "${name}" "${cis_num}"
 
   # SSH Configuration Checks
   cis_num="4.2.1"
   name="Ensure permissions on /etc/ssh/sshd_config are configured"
-  func_wrapper check_permissions_sshd_config "${name}" "${cis_num}"
+  func_wrapper check_permissions_sshd_config "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.2"
   name="Ensure permissions on SSH private host key files are configured"
-  func_wrapper check_permissions_ssh_private_keys "${name}" "${cis_num}"
+  func_wrapper check_permissions_ssh_private_keys "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.3"
   name="Ensure permissions on SSH public host key files are configured"
-  func_wrapper check_permissions_ssh_public_keys "${name}" "${cis_num}"
+  func_wrapper check_permissions_ssh_public_keys "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   # SSH Configuration Checks
   cis_num="4.2.4"
   name="Ensure sshd access is configured"
-  func_wrapper check_sshd_access_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_access_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.5"
   name="Ensure sshd Banner is configured"
-  func_wrapper check_sshd_banner_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_banner_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.6"
   name="Ensure sshd Ciphers are configured"
-  func_wrapper check_sshd_ciphers_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_ciphers_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.7"
   name="Ensure sshd ClientAliveInterval and ClientAliveCountMax are configured"
-  func_wrapper check_sshd_client_alive_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_client_alive_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.8"
   name="Ensure sshd DisableForwarding is enabled"
-  func_wrapper check_sshd_disable_forwarding_enabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_disable_forwarding_enabled "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.9"
   name="Ensure sshd HostbasedAuthentication is disabled"
-  func_wrapper check_sshd_hostbased_authentication_disabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_hostbased_authentication_disabled "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.10"
   name="Ensure sshd IgnoreRhosts is enabled"
-  func_wrapper check_sshd_ignore_rhosts_enabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_ignore_rhosts_enabled "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.11"
   name="Ensure sshd KexAlgorithms is configured"
-  func_wrapper check_sshd_kex_algorithms_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_kex_algorithms_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.12"
   name="Ensure sshd LoginGraceTime is configured"
-  func_wrapper check_sshd_login_grace_time_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_login_grace_time_configured "LoginGraceTime 60" "${name}" "${cis_num}"
 
   cis_num="4.2.13"
   name="Ensure sshd LogLevel is configured"
-  func_wrapper check_sshd_log_level_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_log_level_configured "LogLevel INFO" "${name}" "${cis_num}"
 
   cis_num="4.2.14"
   name="Ensure sshd MACs are configured"
-  func_wrapper check_sshd_macs_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_macs_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.15"
   name="Ensure sshd MaxAuthTries is configured"
-  func_wrapper check_sshd_max_auth_tries_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_max_auth_tries_configured "ssh_maxauthtries" "${name}" "${cis_num}"
 
   cis_num="4.2.16"
   name="Ensure sshd MaxSessions is configured"
-  func_wrapper check_sshd_max_sessions_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_max_sessions_configured "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   cis_num="4.2.17"
   name="Ensure sshd MaxStartups is configured"
-  func_wrapper check_sshd_max_startups_configured "${name}" "${cis_num}"
+  func_wrapper check_sshd_max_startups_configured "MaxStartups 10:30:60" "${name}" "${cis_num}"
 
   cis_num="4.2.18"
   name="Ensure sshd PermitEmptyPasswords is disabled"
-  func_wrapper check_sshd_permit_empty_passwords_disabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_permit_empty_passwords_disabled "PermitEmptyPasswords no" "${name}" "${cis_num}"
 
   cis_num="4.2.19"
   name="Ensure sshd PermitRootLogin is disabled"
-  func_wrapper check_sshd_permit_root_login_disabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_permit_root_login_disabled "PermitRootLogin no" "${name}" "${cis_num}"
 
   cis_num="4.2.20"
   name="Ensure sshd PermitUserEnvironment is disabled"
-  func_wrapper check_sshd_permit_user_environment_disabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_permit_user_environment_disabled "PermitUserEnvironment no" "${name}" "${cis_num}"
 
   cis_num="4.2.21"
   name="Ensure sshd UsePAM is enabled"
-  func_wrapper check_sshd_use_pam_enabled "${name}" "${cis_num}"
+  func_wrapper check_sshd_use_pam_enabled "UsePAM yes" "${name}" "${cis_num}"
 
   cis_num="4.2.22"
   name="Ensure sshd crypto_policy is not set"
-  func_wrapper check_sshd_crypto_policy_not_set "${name}" "${cis_num}"
+  func_wrapper check_sshd_crypto_policy_not_set "/etc/ssh/sshd_config" "${name}" "${cis_num}"
 
   # Sudo Check
   cis_num="4.3.1"
   name="Ensure sudo is installed"
-  func_wrapper check_sudo_installed "${name}" "${cis_num}"
+  func_wrapper check_sudo_installed "sudo" "${name}" "${cis_num}"
   # Sudo Configuration Checks
   cis_num="4.3.2"
   name="Ensure sudo commands use pty"
-  func_wrapper check_sudo_commands_use_pty "${name}" "${cis_num}"
+  func_wrapper check_sudo_commands_use_pty "pty" "${name}" "${cis_num}"
 
   cis_num="4.3.3"
   name="Ensure sudo log file exists"
-  func_wrapper check_sudo_log_file_exists "${name}" "${cis_num}"
+  func_wrapper check_sudo_log_file_exists "/etc/sudoers" "${name}" "${cis_num}"
 
   cis_num="4.3.5"
   name="Ensure re-authentication for privilege escalation is not disabled globally"
-  func_wrapper check_sudo_reauth_not_disabled "${name}" "${cis_num}"
+  func_wrapper check_sudo_reauth_not_disabled "/etc/sudoers" "${name}" "${cis_num}"
 
   cis_num="4.3.6"
   name="Ensure sudo authentication timeout is configured correctly"
-  func_wrapper check_sudo_auth_timeout_configured "${name}" "${cis_num}"
+  func_wrapper check_sudo_auth_timeout_configured "/etc/sudoers" "${name}" "${cis_num}"
 
   cis_num="4.3.7"
   name="Ensure access to the su command is restricted"
-  func_wrapper check_su_command_restricted "${name}" "${cis_num}"
+  func_wrapper check_su_command_restricted "/etc/pam.d/su" "${name}" "${cis_num}"
 
   # PAM and Authselect Checks
   cis_num="4.4.1.1"
   name="Ensure latest version of pam is installed"
-  func_wrapper check_latest_pam_installed "${name}" "${cis_num}"
+  func_wrapper check_latest_pam_installed "pam" "${name}" "${cis_num}"
 
   cis_num="4.4.1.2"
   name="Ensure latest version of authselect is installed"
-  func_wrapper check_latest_authselect_installed "${name}" "${cis_num}"
+  func_wrapper check_latest_authselect_installed "authselect" "${name}" "${cis_num}"
 
   cis_num="4.4.2.1"
   name="Ensure active authselect profile includes pam modules"
-  func_wrapper check_authselect_profile_includes_pam "${name}" "${cis_num}"
+  func_wrapper check_authselect_profile_includes_pam "authselect" "${name}" "${cis_num}"
 
   cis_num="4.4.2.2"
   name="Ensure pam_faillock module is enabled"
-  func_wrapper check_pam_faillock_enabled "${name}" "${cis_num}"
+  func_wrapper check_pam_faillock_enabled "authselect" "${name}" "${cis_num}"
 
   cis_num="4.4.2.3"
   name="Ensure pam_pwquality module is enabled"
-  func_wrapper check_pam_pwquality_enabled "${name}" "${cis_num}"
+  func_wrapper check_pam_pwquality_enabled "pam_pwquality" "${name}" "${cis_num}"
 
   cis_num="4.4.2.4"
   name="Ensure pam_pwhistory module is enabled"
-  func_wrapper check_pam_pwhistory_enabled "${name}" "${cis_num}"
+  func_wrapper check_pam_pwhistory_enabled "pam_pwhistory" "${name}" "${cis_num}"
 
   cis_num="4.4.2.5"
   name="Ensure pam_unix module is enabled"
-  func_wrapper check_pam_unix_enabled "${name}" "${cis_num}"
+  func_wrapper check_pam_unix_enabled "pam_unix" "${name}" "${cis_num}"
 
   # Password Policy Checks
   cis_num="4.4.3.1.1"
   name="Ensure password failed attempts lockout is configured"
-  func_wrapper check_password_failed_attempts_lockout "${name}" "${cis_num}"
+  func_wrapper check_password_failed_attempts_lockout "/etc/security/faillock.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.1.2"
   name="Ensure password unlock time is configured"
-  func_wrapper check_password_unlock_time "${name}" "${cis_num}"
+  func_wrapper check_password_unlock_time "/etc/security/faillock.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.1"
   name="Ensure password number of changed characters is configured"
-  func_wrapper check_password_changed_characters "${name}" "${cis_num}"
+  func_wrapper check_password_changed_characters "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.2"
   name="Ensure password length is configured"
-  func_wrapper check_password_length "${name}" "${cis_num}"
+  func_wrapper check_password_length "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.3"
   name="Ensure password complexity is configured"
-  func_wrapper check_password_complexity "${name}" "${cis_num}"
+  func_wrapper check_password_complexity "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.4"
   name="Ensure password same consecutive characters is configured"
-  func_wrapper check_password_same_consecutive_characters "${name}" "${cis_num}"
+  func_wrapper check_password_same_consecutive_characters "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.5"
   name="Ensure password maximum sequential characters is configured"
-  func_wrapper check_password_maximum_sequential_characters "${name}" "${cis_num}"
+  func_wrapper check_password_maximum_sequential_characters "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.6"
   name="Ensure password dictionary check is enabled"
-  func_wrapper check_password_dictionary_check "${name}" "${cis_num}"
+  func_wrapper check_password_dictionary_check "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.2.7"
   name="Ensure password quality is enforced for the root user"
-  func_wrapper check_password_quality_enforced_root "${name}" "${cis_num}"
+  func_wrapper check_password_quality_enforced_root "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   # Password History Checks
   cis_num="4.4.3.3.1"
   name="Ensure password history remember is configured"
-  func_wrapper check_password_history_remember_configured "${name}" "${cis_num}"
+  func_wrapper check_password_history_remember_configured "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.3.2"
   name="Ensure password history is enforced for the root user"
-  func_wrapper check_password_history_enforced_root "${name}" "${cis_num}"
+  func_wrapper check_password_history_enforced_root "/etc/security/pwquality.conf" "${name}" "${cis_num}"
 
   cis_num="4.4.3.3.3"
   name="Ensure pam_pwhistory includes use_authtok"
-  func_wrapper check_pam_pwhistory_use_authtok "${name}" "${cis_num}"
+  func_wrapper check_pam_pwhistory_use_authtok "/etc/pam.d/system-auth" "${name}" "${cis_num}"
 
   # PAM Unix Checks
   cis_num="4.4.3.4.1"
   name="Ensure pam_unix does not include nullok"
-  func_wrapper check_pam_unix_not_nullok "${name}" "${cis_num}"
+  func_wrapper check_pam_unix_not_nullok "/etc/pam.d/system-auth" "${name}" "${cis_num}"
 
   cis_num="4.4.3.4.2"
   name="Ensure pam_unix does not include remember"
-  func_wrapper check_pam_unix_not_remember "${name}" "${cis_num}"
+  func_wrapper check_pam_unix_not_remember "/etc/pam.d/system-auth" "${name}" "${cis_num}"
 
   cis_num="4.4.3.4.3"
   name="Ensure pam_unix includes a strong password hashing algorithm"
-  func_wrapper check_pam_unix_strong_hashing "${name}" "${cis_num}"
+  func_wrapper check_pam_unix_strong_hashing "/etc/pam.d/system-auth" "${name}" "${cis_num}"
 
   cis_num="4.4.3.4.4"
   name="Ensure pam_unix includes use_authtok"
-  func_wrapper check_pam_unix_use_authtok "${name}" "${cis_num}"
+  func_wrapper check_pam_unix_use_authtok "/etc/pam.d/system-auth" "${name}" "${cis_num}"
 
   # Password Policy Checks
   cis_num="4.5.1.1"
   name="Ensure strong password hashing algorithm is configured"
-  func_wrapper check_strong_password_hashing_algorithm "${name}" "${cis_num}"
+  func_wrapper check_strong_password_hashing_algorithm "sha512" "${name}" "${cis_num}"
 
   cis_num="4.5.1.2"
   name="Ensure password expiration is 365 days or less"
-  func_wrapper check_password_expiration "${name}" "${cis_num}"
+  func_wrapper check_password_expiration "PASS_MAX_DAYS 365" "${name}" "${cis_num}"
 
   cis_num="4.5.1.3"
   name="Ensure password expiration warning days is 7 or more"
-  func_wrapper check_password_expiration_warning "${name}" "${cis_num}"
+  func_wrapper check_password_expiration_warning "PASS_WARN_AGE 7" "${name}" "${cis_num}"
 
   cis_num="4.5.1.4"
   name="Ensure inactive password lock is 30 days or less"
-  func_wrapper check_inactive_password_lock "${name}" "${cis_num}"
+  func_wrapper check_inactive_password_lock "/etc/default/useradd" "${name}" "${cis_num}"
 
   cis_num="4.5.1.5"
   name="Ensure all users last password change date is in the past"
-  func_wrapper check_users_last_password_change "${name}" "${cis_num}"
+  func_wrapper check_users_last_password_change "passwd" "${name}" "${cis_num}"
 
   # Root Account Checks
   cis_num="4.5.2.1"
   name="Ensure default group for the root account is GID 0"
-  func_wrapper check_default_group_root_gid "${name}" "${cis_num}"
+  func_wrapper check_default_group_root_gid "root_def_grp" "${name}" "${cis_num}"
 
   cis_num="4.5.2.2"
   name="Ensure root user umask is configured"
-  func_wrapper check_root_user_umask "${name}" "${cis_num}"
+  func_wrapper check_root_user_umask "def_umask_for_users" "${name}" "${cis_num}"
 
   cis_num="4.5.2.3"
   name="Ensure system accounts are secured"
-  func_wrapper check_system_accounts_secured "${name}" "${cis_num}"
+  func_wrapper check_system_accounts_secured "dis_sys_accs" "${name}" "${cis_num}"
 
   cis_num="4.5.2.4"
   name="Ensure root password is set"
-  func_wrapper check_root_password_set "${name}" "${cis_num}"
+  func_wrapper check_root_password_set "passwd" "${name}" "${cis_num}"
 
   # User Shell and Umask Checks
   cis_num="4.5.3.2"
   name="Ensure default user shell timeout is configured"
-  func_wrapper check_default_user_shell_timeout "${name}" "${cis_num}"
+  func_wrapper check_default_user_shell_timeout "/etc/profile" "${name}" "${cis_num}"
 
   cis_num="4.5.3.3"
   name="Ensure default user umask is configured"
-  func_wrapper check_default_user_umask "${name}" "${cis_num}"
+  func_wrapper check_default_user_umask "/etc/profile" "${name}" "${cis_num}"
 
   # Logrotate and Logfile Access Checks
   cis_num="5.1.3"
   name="Ensure logrotate is configured"
-  func_wrapper check_logrotate_configured "${name}" "${cis_num}"
+  func_wrapper check_logrotate_configured "/etc/logrotate.conf" "${name}" "${cis_num}"
 
   cis_num="5.1.4"
   name="Ensure all logfiles have appropriate access configured"
-  func_wrapper check_logfiles_access_configured "${name}" "${cis_num}"
+  func_wrapper check_logfiles_access_configured "/var/log" "${name}" "${cis_num}"
 
   # Rsyslog Check
   cis_num="5.1.1.1"
   name="Ensure rsyslog is installed"
-  func_wrapper check_rsyslog_installed "${name}" "${cis_num}"
+  func_wrapper check_rsyslog_installed "rsyslog" "${name}" "${cis_num}"
 
   # Rsyslog and Journald Configuration Checks
   cis_num="5.1.1.2"
   name="Ensure rsyslog service is enabled"
-  func_wrapper check_rsyslog_service_enabled "${name}" "${cis_num}"
+  func_wrapper check_rsyslog_service_enabled "rsyslog" "${name}" "${cis_num}"
 
   cis_num="5.1.1.3"
   name="Ensure journald is configured to send logs to rsyslog"
-  func_wrapper check_journald_send_logs_to_rsyslog "${name}" "${cis_num}"
+  func_wrapper check_journald_send_logs_to_rsyslog "journald" "${name}" "${cis_num}"
 
   cis_num="5.1.1.4"
   name="Ensure rsyslog default file permissions are configured"
-  func_wrapper check_rsyslog_default_file_permissions "${name}" "${cis_num}"
+  func_wrapper check_rsyslog_default_file_permissions "rsyslog" "${name}" "${cis_num}"
 
   cis_num="5.1.1.5"
   name="Ensure logging is configured"
-  func_wrapper check_logging_configured "${name}" "${cis_num}"
+  func_wrapper check_logging_configured "rsyslog" "${name}" "${cis_num}"
 
   cis_num="5.1.1.6"
   name="Ensure rsyslog is configured to send logs to a remote log host"
-  func_wrapper check_rsyslog_send_logs_remote "${name}" "${cis_num}"
+  func_wrapper check_rsyslog_send_logs_remote "rsyslog" "${name}" "${cis_num}"
 
   cis_num="5.1.1.7"
   name="Ensure rsyslog is not configured to receive logs from a remote client"
-  func_wrapper check_rsyslog_not_receive_remote_logs "${name}" "${cis_num}"
+  func_wrapper check_rsyslog_not_receive_remote_logs "rsyslog" "${name}" "${cis_num}"
 
   cis_num="5.1.2.2"
   name="Ensure journald service is enabled"
-  func_wrapper check_journald_service_enabled "${name}" "${cis_num}"
+  func_wrapper check_journald_service_enabled "journald" "${name}" "${cis_num}"
 
   cis_num="5.1.2.3"
   name="Ensure journald is configured to compress large log files"
-  func_wrapper check_journald_compress_logs "${name}" "${cis_num}"
+  func_wrapper check_journald_compress_logs "journald" "${name}" "${cis_num}"
 
   cis_num="5.1.2.4"
   name="Ensure journald is configured to write logfiles to persistent disk"
-  func_wrapper check_journald_persistent_storage "${name}" "${cis_num}"
+  func_wrapper check_journald_persistent_storage "journald" "${name}" "${cis_num}"
 
   cis_num="5.1.2.5"
   name="Ensure journald is not configured to send logs to rsyslog"
-  func_wrapper check_journald_not_send_logs_to_rsyslog "${name}" "${cis_num}"
+  func_wrapper check_journald_not_send_logs_to_rsyslog "journald" "${name}" "${cis_num}"
 
   cis_num="5.1.2.6"
   name="Ensure journald log rotation is configured per site policy"
-  func_wrapper check_journald_log_rotation "${name}" "${cis_num}"
+  func_wrapper check_journald_log_rotation "/etc/logrotate.d/syslog" "${name}" "${cis_num}"
 
   cis_num="5.1.2.1.1"
   name="Ensure systemd-journal-remote is installed"
-  func_wrapper check_systemd_journal_remote_installed "${name}" "${cis_num}"
+  func_wrapper check_systemd_journal_remote_installed "systemd-journal-remote" "${name}" "${cis_num}"
 
   cis_num="5.1.2.1.2"
   name="Ensure systemd-journal-remote is configured"
-  func_wrapper check_systemd_journal_remote_configured "${name}" "${cis_num}"
+  func_wrapper check_systemd_journal_remote_configured "/etc/systemd/journal-remote.conf" "${name}" "${cis_num}"
 
   cis_num="5.1.2.1.3"
   name="Ensure systemd-journal-remote is enabled"
-  func_wrapper check_systemd_journal_remote_enabled "${name}" "${cis_num}"
+  func_wrapper check_systemd_journal_remote_enabled "systemd-journal-remote" "${name}" "${cis_num}"
 
   cis_num="5.1.2.1.4"
   name="Ensure journald is not configured to receive logs from a remote client"
-  func_wrapper check_journald_not_receive_remote_logs "${name}" "${cis_num}"
+  func_wrapper check_journald_not_receive_remote_logs "/etc/systemd/journald.conf" "${name}" "${cis_num}"
 
   # AIDE and Filesystem Integrity Checks
   cis_num="5.3.1"
   name="Ensure AIDE is installed"
-  func_wrapper check_aide_installed "${name}" "${cis_num}"
+  func_wrapper check_aide_installed "aide" "${name}" "${cis_num}"
 
   cis_num="5.3.2"
   name="Ensure filesystem integrity is regularly checked"
-  func_wrapper check_filesystem_integrity_checked "${name}" "${cis_num}"
+  func_wrapper check_filesystem_integrity_checked "aide" "${name}" "${cis_num}"
 
   cis_num="5.3.3"
   name="Ensure cryptographic mechanisms are used to protect the integrity of audit tools"
-  func_wrapper check_crypto_mechanisms_audit_tools "${name}" "${cis_num}"
+  func_wrapper check_crypto_mechanisms_audit_tools "aide" "${name}" "${cis_num}"
 
   # Permissions Checks
   cis_num="6.1.1"
   name="Ensure permissions on /etc/passwd are configured"
-  func_wrapper check_permissions_passwd "${name}" "${cis_num}"
+  func_wrapper check_permissions_passwd "/etc/passwd" "${name}" "${cis_num}"
 
   cis_num="6.1.2"
   name="Ensure permissions on /etc/passwd- are configured"
-  func_wrapper check_permissions_passwd_dash "${name}" "${cis_num}"
+  func_wrapper check_permissions_passwd_dash "/etc/passwd" "${name}" "${cis_num}"
 
   cis_num="6.1.3"
   name="Ensure permissions on /etc/opasswd are configured"
-  func_wrapper check_permissions_opasswd "${name}" "${cis_num}"
+  func_wrapper check_permissions_opasswd "/etc/opasswd" "${name}" "${cis_num}"
 
   # Permissions Checks
   cis_num="6.1.4"
   name="Ensure permissions on /etc/group are configured"
-  func_wrapper check_permissions_group "${name}" "${cis_num}"
+  func_wrapper check_permissions_group "/etc/group" "${name}" "${cis_num}"
 
   cis_num="6.1.5"
   name="Ensure permissions on /etc/group- are configured"
-  func_wrapper check_permissions_group_dash "${name}" "${cis_num}"
+  func_wrapper check_permissions_group_dash "/etc/group" "${name}" "${cis_num}"
 
   cis_num="6.1.6"
   name="Ensure permissions on /etc/shadow are configured"
-  func_wrapper check_permissions_shadow "${name}" "${cis_num}"
+  func_wrapper check_permissions_shadow "/etc/shadow" "${name}" "${cis_num}"
 
   cis_num="6.1.7"
   name="Ensure permissions on /etc/shadow- are configured"
-  func_wrapper check_permissions_shadow_dash "${name}" "${cis_num}"
+  func_wrapper check_permissions_shadow_dash "/etc/shadow-" "${name}" "${cis_num}"
 
   cis_num="6.1.8"
   name="Ensure permissions on /etc/gshadow are configured"
-  func_wrapper check_permissions_gshadow "${name}" "${cis_num}"
+  func_wrapper check_permissions_gshadow "/etc/gshadow" "${name}" "${cis_num}"
 
   cis_num="6.1.9"
   name="Ensure permissions on /etc/gshadow- are configured"
-  func_wrapper check_permissions_gshadow_dash "${name}" "${cis_num}"
+  func_wrapper check_permissions_gshadow_dash "/etc/gshadow-" "${name}" "${cis_num}"
 
   cis_num="6.1.10"
   name="Ensure permissions on /etc/shells are configured"
-  func_wrapper check_permissions_shells "${name}" "${cis_num}"
+  func_wrapper check_permissions_shells "/etc/shells" "${name}" "${cis_num}"
 
   cis_num="6.1.11"
   name="Ensure world writable files and directories are secured"
-  func_wrapper check_world_writable_files "${name}" "${cis_num}"
+  func_wrapper check_world_writable_files "dot_file_perms" "${name}" "${cis_num}"
 
   cis_num="6.1.12"
   name="Ensure no unowned or ungrouped files or directories exist"
-  func_wrapper check_no_unowned_files "${name}" "${cis_num}"
+  func_wrapper check_no_unowned_files "unowned_files" "${name}" "${cis_num}"
 
   cis_num="6.1.13"
   name="Ensure SUID and SGID files are reviewed"
-  func_wrapper check_suid_sgid_files "${name}" "${cis_num}"
+  func_wrapper check_suid_sgid_files "chk_suid_sgid_files" "${name}" "${cis_num}"
 
   # Account Checks
   cis_num="6.2.1"
   name="Ensure accounts in /etc/passwd use shadowed passwords"
-  func_wrapper check_shadowed_passwords "${name}" "${cis_num}"
+  func_wrapper check_shadowed_passwords "/etc/passwd" "${name}" "${cis_num}"
 
   cis_num="6.2.2"
   name="Ensure /etc/shadow password fields are not empty"
-  func_wrapper check_shadow_password_fields_not_empty "${name}" "${cis_num}"
+  func_wrapper check_shadow_password_fields_not_empty "/etc/shadow" "${name}" "${cis_num}"
 
   cis_num="6.2.3"
   name="Ensure all groups in /etc/passwd exist in /etc/group"
-  func_wrapper check_groups_in_passwd_exist_in_group "${name}" "${cis_num}"
+  func_wrapper check_groups_in_passwd_exist_in_group "/etc/passwd" "${name}" "${cis_num}"
 
   cis_num="6.2.4"
   name="Ensure no duplicate UIDs exist"
-  func_wrapper check_no_duplicate_uids "${name}" "${cis_num}"
+  func_wrapper check_no_duplicate_uids "duplicate_uids" "${name}" "${cis_num}"
 
   cis_num="6.2.5"
   name="Ensure no duplicate GIDs exist"
-  func_wrapper check_no_duplicate_gids "${name}" "${cis_num}"
+  func_wrapper check_no_duplicate_gids "duplicate_gids" "${name}" "${cis_num}"
 
   cis_num="6.2.6"
   name="Ensure no duplicate user names exist"
-  func_wrapper check_no_duplicate_usernames "${name}" "${cis_num}"
+  func_wrapper check_no_duplicate_usernames "duplicate_usernames" "${name}" "${cis_num}"
 
   cis_num="6.2.7"
   name="Ensure no duplicate group names exist"
-  func_wrapper check_no_duplicate_groupnames "${name}" "${cis_num}"
+  func_wrapper check_no_duplicate_groupnames "duplicate_groupnames" "${name}" "${cis_num}"
 
   cis_num="6.2.8"
   name="Ensure root path integrity"
-  func_wrapper check_root_path_integrity "${name}" "${cis_num}"
+  func_wrapper check_root_path_integrity "root_path" "${name}" "${cis_num}"
 
   cis_num="6.2.9"
   name="Ensure root is the only UID 0 account"
-  func_wrapper check_root_only_uid_0 "${name}" "${cis_num}"
+  func_wrapper check_root_only_uid_0 "no_uid0_other_root" "${name}" "${cis_num}"
 
   cis_num="6.2.10"
   name="Ensure local interactive user home directories are configured"
-  func_wrapper check_local_user_home_directories "${name}" "${cis_num}"
+  func_wrapper check_local_user_home_directories "home_dir" "${name}" "${cis_num}"
 
   cis_num="6.2.11"
   name="Ensure local interactive user dot files access is configured"
-  func_wrapper check_local_user_dot_files_access "${name}" "${cis_num}"
+  func_wrapper check_local_user_dot_files_access "chk_local_user_dot_files_access" "${name}" "${cis_num}"
 
 }
 
