@@ -4,51 +4,6 @@
 MAIN_VERSION_ID="$(echo ${VERSION_ID} |cut -f1 -d'.')"
 
 
-FSTAB='/etc/fstab'
-YUM_CONF='/etc/yum.conf'
-GRUB_CFG='/boot/grub2/grub.cfg'
-GRUB_DIR='/etc/grub.d'
-SELINUX_CFG='/etc/selinux/config'
-JOURNALD_CFG='/etc/systemd/journald.conf'
-CHRONY_CONF='/etc/chrony.conf'
-SECURETTY_CFG='/etc/securetty'
-LIMITS_CNF='/etc/security/limits.conf'
-SYSCTL_CNF='/etc/sysctl.d/50-.conf'
-HOSTS_ALLOW='/etc/hosts.allow'
-HOSTS_DENY='/etc/hosts.deny'
-_CNF='/etc/modprobe.d/.conf'
-RSYSLOG_CNF='/etc/rsyslog.conf'
-AUDITD_CNF='/etc/audit/auditd.conf'
-AUDIT_RULES='/etc/audit/audit.rules'
-LOGR_SYSLOG='/etc/logrotate.d/syslog'
-ANACRONTAB='/etc/anacrontab'
-CRONTAB='/etc/crontab'
-CRON_HOURLY='/etc/cron.hourly'
-CRON_DAILY='/etc/cron.daily'
-CRON_WEEKLY='/etc/cron.weekly'
-CRON_MONTHLY='/etc/cron.monthly'
-CRON_DIR='/etc/cron.d'
-AT_ALLOW='/etc/at.allow'
-AT_DENY='/etc/at.deny'
-CRON_ALLOW='/etc/cron.allow'
-CRON_DENY='/etc/cron.deny'
-SSHD_CFG='/etc/ssh/sshd_config'
-SYSTEM_AUTH='/etc/pam.d/system-auth'
-PWQUAL_CNF='/etc/security/pwquality.conf'
-PASS_AUTH='/etc/pam.d/password-auth'
-PAM_SU='/etc/pam.d/su'
-GROUP='/etc/group'
-LOGIN_DEFS='/etc/login.defs'
-PASSWD='/etc/passwd'
-SHADOW='/etc/shadow'
-GSHADOW='/etc/gshadow'
-BASHRC='/etc/bashrc'
-PROF_D='/etc/profile.d'
-PROFILE='/etc/profile'
-MOTD='/etc/motd'
-ISSUE='/etc/issue'
-ISSUE_NET='/etc/issue.net'
-BANNER_MSG='/etc/dconf/db/gdm.d/01-banner-message'
 TOTAL=0; PASS=0; FAILED=0
 
 function echo_bold {
@@ -63,11 +18,31 @@ function echo_green {
   echo -e "\e[92m${@} \e[0m"
 }
 
-function chk_owner_group02 {
-  local file=$1
-  local owner_group="root:root"
-  stat -c '%U:%G' $1 | grep -q ${owner_group} || return
+echo "ID,Description,Parameters,$HOSTNAME $1 $2"
+function func_wrapper {
+  let TOTAL++
+  func_name=$1
+  modul_name=$2
+  func_print=$3
+  cis_name=$4
+  shift
+  args=$@
+  printf "${cis_name},${func_print},$modul_name,"
+  ${func_name} ${args} >/dev/null 2>&1
+  if [[ "$?" -eq 0 ]]; then
+    let PASS++
+    echo PASS
+  else
+    let FAILED++
+    echo FAIL
+  fi
 }
+
+#  function chk_owner_group02 {
+#   local file=$1
+#   local owner_group="root:root"
+#   stat -c '%U:%G' $1 | grep -q ${owner_group} || return
+# }
 
 function check_kernel_module {
   local module=$1
@@ -75,6 +50,30 @@ function check_kernel_module {
     return 1
   else
     return 0
+  fi
+}
+
+function check_usb_storage_not_available {
+  if ! lsmod | grep -q "usb_storage"; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function check_tmp_separate_partition {
+  if mount | grep -q "on /tmp "; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function check_dev_shm_separate_partition {
+  if mount | grep -q "on /dev/shm "; then
+    return 0
+  else
+    return 1
   fi
 }
 
@@ -210,6 +209,14 @@ function check_no_unconfined_services_exist {
 
 function check_mcstrans_not_installed {
   if ! rpm -q mcstrans; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function check_setroubleshoot_not_installed {
+  if ! rpm -q setroubleshoot; then
     return 0
   else
     return 1
@@ -773,27 +780,6 @@ function check_secure_icmp_redirects_not_accepted {
     return 0
   else
     return 1
-  fi
-}
-
-
-echo "ID,Description,Parameters,$HOSTNAME $1 $2"
-function func_wrapper {
-  let TOTAL++
-  func_name=$1
-  modul_name=$2
-  func_print=$3
-  cis_name=$4
-  shift
-  args=$@
-  printf "${cis_name},${func_print},$modul_name,"
-  ${func_name} ${args} >/dev/null 2>&1
-  if [[ "$?" -eq 0 ]]; then
-    let PASS++
-    echo PASS
-  else
-    let FAILED++
-    echo FAIL
   fi
 }
 
@@ -1959,7 +1945,7 @@ function check_local_user_dot_files_access {
   fi
 }
 
-#end_functions+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#end_functions################################################################################################################################
 
 function main {
   # Kernel Module Checks
@@ -1983,6 +1969,16 @@ function main {
   name="Ensure jffs2 kernel module is not available"
   func_wrapper check_kernel_module "jffs2" "${name}" "${cis_num}"
 
+  # Kernel Module Check
+  cis_num="1.1.1.8"
+  name="Ensure usb-storage kernel module is not available"
+  func_wrapper check_usb_storage_not_available "${name}" "${cis_num}"
+
+  # Partition Check
+  cis_num="1.1.2.1.1"
+  name="Ensure /tmp is a separate partition"
+  func_wrapper check_tmp_separate_partition "${name}" "${cis_num}"
+
   # Partition Option Checks
   cis_num="1.1.2.1.2"
   name="Ensure nodev option set on /tmp partition"
@@ -1995,6 +1991,10 @@ function main {
   cis_num="1.1.2.1.4"
   name="Ensure noexec option set on /tmp partition"
   func_wrapper check_partition_option "/tmp" "${name}" "${cis_num}"
+
+  cis_num="1.1.2.2.1"
+  name="Ensure /dev/shm is a separate partition"
+  func_wrapper check_dev_shm_separate_partition "${name}" "${cis_num}"
 
   cis_num="1.1.2.2.2"
   name="Ensure nodev option set on /dev/shm partition"
@@ -2123,6 +2123,12 @@ function main {
   cis_num="1.5.1.7"
   name="Ensure the MCS Translation Service (mcstrans) is not installed"
   func_wrapper check_mcstrans_not_installed "${name}" "${cis_num}"
+
+   # SETroubleshoot Check
+  cis_num="1.5.1.8"
+  name="Ensure SETroubleshoot is not installed"
+  func_wrapper check_setroubleshoot_not_installed "${name}" "${cis_num}"
+
 
   cis_num="1.6.1"
   name="Ensure system wide crypto policy is not set to legacy"
